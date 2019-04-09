@@ -13,7 +13,7 @@ defmodule Consent do
     {data, errors} =
       Enum.reduce(rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
         value = Map.get(params, key)
-        res = Enum.reduce(item_rules, {:ok, nil}, fn x, acc -> run_validator(value, x, acc) end)
+        res = Enum.reduce(item_rules, {:ok, nil}, &evaluate_validator(value, &1, &2))
 
         case res do
           {:ok, x} ->
@@ -21,20 +21,17 @@ defmodule Consent do
 
           {:error, msg} ->
             {data, Map.put(errors, key, msg)}
+          
+          {:skip} -> {data, errors}
         end
       end)
 
     result(data, errors)
   end
 
-  defp run_validator(value, validator, acc) do
-    case validator.(value) do
-      {:ok, val} ->
-        {:ok, val}
-
-      {:error, msg} ->
-        {:error, msg}
-    end
+  defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
+  defp evaluate_validator(value, validator, _acc) do
+    validator.(value)
   end
 
   defp result(data, errors) do
