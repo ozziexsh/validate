@@ -42,7 +42,7 @@ defmodule MyApp.UserController do
         # `data` is filtered to only the keys provided in `rules`
 
       {:error, errors} ->
-        # errors is a struct that matches the rules provided
+        # errors is a map that matches the rules provided
         # in this case: %{ "username" => "required" }
         json(conn, errors)
     end
@@ -66,10 +66,11 @@ Validates to false if:
 - `{}`
 
 ```elixir
+alias Consent.Required
 data = %{ "username" => "" }
 rules = %{
   "username" => [
-    &Consent.required/1
+    &Required.required/1
   ]
 }
 validate(data, rules)
