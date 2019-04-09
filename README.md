@@ -58,21 +58,81 @@ end
 
 ### Required
 
-Validates to false if:
+Validates input is not:
 
 - `undefined`
+- `null`
 - `""`
 - `[]`
 - `{}`
 
 ```elixir
-alias Consent.Required
+import Consent
+import Consent.Required
 data = %{ "username" => "" }
 rules = %{
   "username" => [
-    &Required.required/1
+    &required/1
   ]
 }
 validate(data, rules)
 # {:error, %{ "username" => "required" }}
+```
+
+### Optional
+
+Does not continue with the rest of the validators if the value is not present or nil
+
+- `undefined`
+- `null`
+
+```elixir
+import Consent
+import Consent.Optional
+import Consent.String
+data = %{}
+rules = %{
+  "username" => [
+    &optional/1,
+    &string/1,
+  ]
+}
+# value not present, so it's ok
+validate(data, rules)
+# {:ok, %{}}
+```
+
+```elixir
+import Consent
+import Consent.Optional
+import Consent.String
+data = %{ "username" => 123 }
+rules = %{
+  "username" => [
+    &optional/1,
+    &string/1,
+  ]
+}
+# value present, so it continues on to next validators
+validate(data, rules)
+# {:error, %{"username" => "not a string"}}
+```
+
+### String
+
+Validates input is a string
+
+```elixir
+import Consent
+import Consent.String
+data = %{
+  "username" => 123
+}
+rules = %{
+  "username" => [
+    &string/1,
+  ]
+}
+validate(data, rules)
+# {:error, %{"username" => "not a string"}}
 ```
