@@ -6,7 +6,7 @@ Consent, validate incoming requests in an easy to reason-about way using Elixir.
 
 Coming from languages like PHP and Node.js it can be difficult to reason about validating your requests using Ecto. This provides a simple data validation layer that aims to be extensible to allow for custom validation logic provided by the user.
 
-## 🚧 Todo
+## Todo
 
 - Give option to provide atoms in rule lists for simple validators to get rid of needing to import each one
 - Test usage with mixed keys (`:atoms` and `"strings"`)
@@ -15,7 +15,7 @@ Coming from languages like PHP and Node.js it can be difficult to reason about v
 - i18n
 - Support more input params than just maps
 
-## 🖥 Installation
+## Installation
 
 The package can be installed
 by adding `consent` to your list of dependencies in `mix.exs`:
@@ -28,7 +28,7 @@ def deps do
 end
 ```
 
-## ✅ Usage
+## Usage
 
 ```elixir
 defmodule MyApp.UserController do
