@@ -8,21 +8,21 @@ defmodule Consent.Required do
 
   def required(val) when is_binary(val) do
     case String.length(val) do
-      0 -> error
+      0 -> error()
       _ -> success(val)
     end
   end
 
   def required(val) when is_list(val) or is_map(val) do
     case Enum.count(val) do
-      0 -> error
+      0 -> error()
       _ -> success(val)
     end
   end
 
   def required(val \\ nil) do
     case val do
-      nil -> error
+      nil -> error()
       _ -> success(val)
     end
   end
