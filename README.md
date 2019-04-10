@@ -148,10 +148,29 @@ data = %{
   "balance" => "very low"
 }
 rules = %{
-  "username" => [
+  "balance" => [
     &number/1,
   ]
 }
 validate(data, rules)
-# {:error, %{"username" => "not a number"}}
+# {:error, %{"balance" => "not a number"}}
+```
+
+### List
+
+Validates input is a list (array)
+
+```elixir
+import Consent
+import Consent.List
+data = %{
+  "cities" => "saskatoon"
+}
+rules = %{
+  "cities" => [
+    &list/1,
+  ]
+}
+validate(data, rules)
+# {:error, %{"balance" => "not a list"}}
 ```
