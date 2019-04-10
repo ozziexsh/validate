@@ -136,3 +136,22 @@ rules = %{
 validate(data, rules)
 # {:error, %{"username" => "not a string"}}
 ```
+
+### Number
+
+Validates input is a number (float or int)
+
+```elixir
+import Consent
+import Consent.Number
+data = %{
+  "balance" => "very low"
+}
+rules = %{
+  "username" => [
+    &number/1,
+  ]
+}
+validate(data, rules)
+# {:error, %{"username" => "not a number"}}
+```
