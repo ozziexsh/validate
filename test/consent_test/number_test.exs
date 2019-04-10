@@ -12,7 +12,7 @@ defmodule ConsentTest.Number do
 
     assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
-  
+
   test "returns error when input is a string" do
     input = %{
       "balance" => "123"
@@ -24,10 +24,10 @@ defmodule ConsentTest.Number do
 
     assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
-  
+
   test "returns error when input is a list" do
     input = %{
-      "balance" => [1,2,3]
+      "balance" => [1, 2, 3]
     }
 
     rules = %{
@@ -36,7 +36,7 @@ defmodule ConsentTest.Number do
 
     assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
-  
+
   test "returns error when input is a map" do
     input = %{
       "balance" => %{"key" => "value"}
@@ -48,7 +48,7 @@ defmodule ConsentTest.Number do
 
     assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
-  
+
   test "returns ok when input is 0" do
     input = %{
       "balance" => 0
@@ -60,7 +60,7 @@ defmodule ConsentTest.Number do
 
     assert Consent.validate(input, rules) == {:ok, %{"balance" => 0}}
   end
-  
+
   test "returns ok when input is float" do
     input = %{
       "balance" => 1.23

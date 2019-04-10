@@ -12,7 +12,7 @@ defmodule ConsentTest.String do
 
     assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
-  
+
   test "returns error when input is an int" do
     input = %{
       "username" => 1
@@ -24,10 +24,10 @@ defmodule ConsentTest.String do
 
     assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
-  
+
   test "returns error when input is a list" do
     input = %{
-      "username" => [1,2,3]
+      "username" => [1, 2, 3]
     }
 
     rules = %{
@@ -36,10 +36,10 @@ defmodule ConsentTest.String do
 
     assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
-  
+
   test "returns error when input is a map" do
     input = %{
-      "username" => %{ "key" => "val" }
+      "username" => %{"key" => "val"}
     }
 
     rules = %{
@@ -48,7 +48,7 @@ defmodule ConsentTest.String do
 
     assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
-  
+
   test "returns ok when input is empty string" do
     input = %{
       "username" => ""
@@ -60,7 +60,7 @@ defmodule ConsentTest.String do
 
     assert Consent.validate(input, rules) == {:ok, %{"username" => ""}}
   end
-  
+
   test "returns ok when input is a string" do
     input = %{
       "username" => "123"

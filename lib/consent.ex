@@ -21,8 +21,9 @@ defmodule Consent do
 
           {:error, msg} ->
             {data, Map.put(errors, key, msg)}
-          
-          {:skip} -> {data, errors}
+
+          {:skip} ->
+            {data, errors}
         end
       end)
 
@@ -30,6 +31,7 @@ defmodule Consent do
   end
 
   defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
+
   defp evaluate_validator(value, validator, _acc) do
     validator.(value)
   end
