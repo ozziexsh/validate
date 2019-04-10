@@ -23,7 +23,7 @@ by adding `consent` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:consent, "~> 0.1.0"}
+    {:consent, "~> 0.1.1"}
   ]
 end
 ```
