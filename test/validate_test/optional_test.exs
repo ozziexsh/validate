@@ -4,7 +4,7 @@ defmodule ValidateTest.Optional do
   alias Validate.Optional
 
   doctest Validate.Optional
-  
+
   test "it should return skip when not present" do
     input = %{}
 

@@ -12,7 +12,7 @@ defmodule ValidateTest.Number do
 
     assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
-  
+
   test "returns error when input is not present" do
     input = %{}
 
