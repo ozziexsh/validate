@@ -33,6 +33,6 @@ defmodule Validate do
   defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
   defp evaluate_validator(value, validator, _acc), do: validator.(value)
 
-  defp result(data, errors) when map_size(errors) = 0, do: {:ok, data}
+  defp result(data, errors) when map_size(errors) == 0, do: {:ok, data}
   defp result(data, errors), do: {:error, errors}
 end
