@@ -23,7 +23,7 @@ by adding `validate` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:validate, "~> 0.2.2"}
+    {:validate, "~> 0.2.3"}
   ]
 end
 ```
