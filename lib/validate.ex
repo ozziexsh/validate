@@ -9,6 +9,7 @@ defmodule Validate do
     :string => &Validate.String.string/1,
     :number => &Validate.Number.number/1,
     :list => &Validate.List.list/1,
+    :map => &Validate.Map.map/1
   }
 
   @doc """
@@ -29,7 +30,7 @@ defmodule Validate do
 
           {:error, msg} ->
             {data, Map.put(errors, key, msg)}
-          
+
           {:skip, msg} ->
             {data, Map.put(errors, key, msg)}
 
@@ -49,6 +50,14 @@ defmodule Validate do
       Map.get(@fn_map, validator).(value)
     else
       {:error, "invalid validator"}
+    end
+  end
+
+  defp evaluate_validator(value, {:map, nested_rules}, _acc) do
+    if is_map(value) and is_map(nested_rules) do
+      validate(value, nested_rules)
+    else
+      Map.get(@fn_map, :map).(value)
     end
   end
 
