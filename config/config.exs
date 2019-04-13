@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :consent, key: :value
+#     config :validate, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:consent, :key)
+#     Application.get_env(:validate, :key)
 #
 # You can also configure a third-party app:
 #

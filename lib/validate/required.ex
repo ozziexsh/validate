@@ -1,6 +1,6 @@
-defmodule Consent.Required do
+defmodule Validate.Required do
   @moduledoc """
-  Consent.required/1. Validates the presence of a value.
+  Validate.required/1. Validates the presence of a value.
   If it's a string, checks that it's not empty
   If it's a list, checks that it has at least one item
   If it's a map, checks that it has at least one property

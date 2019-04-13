@@ -1,7 +1,7 @@
-defmodule ConsentTest.String do
+defmodule ValidateTest.String do
   use ExUnit.Case
-  alias Consent.String
-  doctest Consent.String
+  alias Validate.String
+  doctest Validate.String
 
   test "returns error when input is not present" do
     input = %{}
@@ -10,7 +10,7 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
 
   test "returns error when input is an int" do
@@ -22,7 +22,7 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
 
   test "returns error when input is a list" do
@@ -34,7 +34,7 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
 
   test "returns error when input is a map" do
@@ -46,7 +46,7 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
   end
 
   test "returns ok when input is empty string" do
@@ -58,7 +58,7 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:ok, %{"username" => ""}}
+    assert Validate.validate(input, rules) == {:ok, %{"username" => ""}}
   end
 
   test "returns ok when input is a string" do
@@ -70,6 +70,6 @@ defmodule ConsentTest.String do
       "username" => [&String.string/1]
     }
 
-    assert Consent.validate(input, rules) == {:ok, %{"username" => "123"}}
+    assert Validate.validate(input, rules) == {:ok, %{"username" => "123"}}
   end
 end

@@ -1,10 +1,10 @@
-defmodule Consent do
+defmodule Validate do
   @moduledoc """
-  Consent, validate incoming requests in an easy to reason-about way.
+  Validate, validate incoming requests in an easy to reason-about way.
   """
 
   @doc """
-  Consent.validate/2, the entry point for validation.
+  Validate.validate/2, the entry point for validation.
   Takes in a struct. Returns either:
   `{:ok, data}` or `{:error, errors}`
   Data returned is filtered out to only keys provided in rules
@@ -31,18 +31,8 @@ defmodule Consent do
   end
 
   defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
+  defp evaluate_validator(value, validator, _acc), do: validator.(value)
 
-  defp evaluate_validator(value, validator, _acc) do
-    validator.(value)
-  end
-
-  defp result(data, errors) do
-    case Enum.count(errors) do
-      0 ->
-        {:ok, data}
-
-      _ ->
-        {:error, errors}
-    end
-  end
+  defp result(data, errors) when map_size(errors) = 0, do: {:ok, data}
+  defp result(data, errors), do: {:error, errors}
 end

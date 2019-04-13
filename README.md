@@ -1,8 +1,8 @@
-# Consent
+# Validate
 
-Consent, validate incoming requests in an easy to reason-about way using Elixir.
+Validate incoming requests in an easy to reason-about way using Elixir.
 
-🚨 **Consent is an active WIP. Building mostly for fun/to satisfy my own needs on a project** 🚨
+🚨 **Validate is an active WIP. Building mostly for fun/to satisfy my own needs on a project** 🚨
 
 Coming from languages like PHP and Node.js it can be difficult to reason about validating your requests using Ecto. This provides a simple data validation layer that aims to be extensible to allow for custom validation logic provided by the user.
 
@@ -18,12 +18,12 @@ Coming from languages like PHP and Node.js it can be difficult to reason about v
 ## Installation
 
 The package can be installed
-by adding `consent` to your list of dependencies in `mix.exs`:
+by adding `validate` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:consent, "~> 0.1.1"}
+    {:validate, "~> 0.1.1"}
   ]
 end
 ```
@@ -32,8 +32,8 @@ end
 
 ```elixir
 defmodule MyApp.UserController do
-  import Consent
-  import Consent.Required
+  import Validate
+  import Validate.Required
 
   def create(conn, params) do
     case validate(params, create_rules) do
@@ -67,8 +67,8 @@ Validates input is not:
 - `{}`
 
 ```elixir
-import Consent
-import Consent.Required
+import Validate
+import Validate.Required
 data = %{ "username" => "" }
 rules = %{
   "username" => [
@@ -87,9 +87,9 @@ Does not continue with the rest of the validators if the value is not present or
 - `null`
 
 ```elixir
-import Consent
-import Consent.Optional
-import Consent.String
+import Validate
+import Validate.Optional
+import Validate.String
 data = %{}
 rules = %{
   "username" => [
@@ -103,9 +103,9 @@ validate(data, rules)
 ```
 
 ```elixir
-import Consent
-import Consent.Optional
-import Consent.String
+import Validate
+import Validate.Optional
+import Validate.String
 data = %{ "username" => 123 }
 rules = %{
   "username" => [
@@ -123,8 +123,8 @@ validate(data, rules)
 Validates input is a string
 
 ```elixir
-import Consent
-import Consent.String
+import Validate
+import Validate.String
 data = %{
   "username" => 123
 }
@@ -142,8 +142,8 @@ validate(data, rules)
 Validates input is a number (float or int)
 
 ```elixir
-import Consent
-import Consent.Number
+import Validate
+import Validate.Number
 data = %{
   "balance" => "very low"
 }
@@ -161,8 +161,8 @@ validate(data, rules)
 Validates input is a list (array)
 
 ```elixir
-import Consent
-import Consent.List
+import Validate
+import Validate.List
 data = %{
   "cities" => "saskatoon"
 }

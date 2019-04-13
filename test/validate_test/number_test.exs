@@ -1,7 +1,7 @@
-defmodule ConsentTest.Number do
+defmodule ValidateTest.Number do
   use ExUnit.Case
-  alias Consent.Number
-  doctest Consent.Number
+  alias Validate.Number
+  doctest Validate.Number
 
   test "returns error when input is not present" do
     input = %{}
@@ -10,7 +10,7 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
+    assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
 
   test "returns error when input is a string" do
@@ -22,7 +22,7 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
+    assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
 
   test "returns error when input is a list" do
@@ -34,7 +34,7 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
+    assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
 
   test "returns error when input is a map" do
@@ -46,7 +46,7 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"balance" => "not a number"}}
+    assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
   end
 
   test "returns ok when input is 0" do
@@ -58,7 +58,7 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:ok, %{"balance" => 0}}
+    assert Validate.validate(input, rules) == {:ok, %{"balance" => 0}}
   end
 
   test "returns ok when input is float" do
@@ -70,6 +70,6 @@ defmodule ConsentTest.Number do
       "balance" => [&Number.number/1]
     }
 
-    assert Consent.validate(input, rules) == {:ok, %{"balance" => 1.23}}
+    assert Validate.validate(input, rules) == {:ok, %{"balance" => 1.23}}
   end
 end

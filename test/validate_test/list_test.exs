@@ -1,7 +1,7 @@
-defmodule ConsentTest.List do
+defmodule ValidateTest.List do
   use ExUnit.Case
-  alias Consent.List
-  doctest Consent.List
+  alias Validate.List
+  doctest Validate.List
 
   test "returns error when input is not present" do
     input = %{}
@@ -10,7 +10,7 @@ defmodule ConsentTest.List do
       "cities" => [&List.list/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"cities" => "not a list"}}
+    assert Validate.validate(input, rules) == {:error, %{"cities" => "not a list"}}
   end
 
   test "returns error when input is an int" do
@@ -22,7 +22,7 @@ defmodule ConsentTest.List do
       "cities" => [&List.list/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"cities" => "not a list"}}
+    assert Validate.validate(input, rules) == {:error, %{"cities" => "not a list"}}
   end
 
   test "returns error when input is a map" do
@@ -34,7 +34,7 @@ defmodule ConsentTest.List do
       "cities" => [&List.list/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"cities" => "not a list"}}
+    assert Validate.validate(input, rules) == {:error, %{"cities" => "not a list"}}
   end
 
   test "returns error when input is a string" do
@@ -46,7 +46,7 @@ defmodule ConsentTest.List do
       "cities" => [&List.list/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"cities" => "not a list"}}
+    assert Validate.validate(input, rules) == {:error, %{"cities" => "not a list"}}
   end
 
   test "returns ok when input is a string" do
@@ -58,6 +58,6 @@ defmodule ConsentTest.List do
       "cities" => [&List.list/1]
     }
 
-    assert Consent.validate(input, rules) == {:ok, %{"cities" => ["saskatoon", "regina"]}}
+    assert Validate.validate(input, rules) == {:ok, %{"cities" => ["saskatoon", "regina"]}}
   end
 end

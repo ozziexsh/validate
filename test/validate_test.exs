@@ -1,12 +1,12 @@
-defmodule ConsentTest do
+defmodule ValidateTest do
   use ExUnit.Case
-  alias Consent.Required
-  doctest Consent
+  alias Validate.Required
+  doctest Validate
 
   test "validates a single input" do
     input = %{"username" => ""}
     rules = %{"username" => [&Required.required/1]}
-    assert Consent.validate(input, rules) == {:error, %{"username" => "required"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "required"}}
   end
 
   test "validates multiple inputs" do
@@ -17,7 +17,7 @@ defmodule ConsentTest do
       "password" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:error, %{"username" => "required", "password" => "required"}}
   end
 
@@ -30,7 +30,7 @@ defmodule ConsentTest do
       "password_confirmation" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:error, %{"password" => "required"}}
   end
 
@@ -41,7 +41,7 @@ defmodule ConsentTest do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:ok, %{"username" => "test"}}
   end
 
@@ -52,7 +52,7 @@ defmodule ConsentTest do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:ok, %{"username" => "test"}}
   end
 end

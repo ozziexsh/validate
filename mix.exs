@@ -1,13 +1,13 @@
-defmodule Consent.MixProject do
+defmodule Validate.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :consent,
-      name: "Consent",
+      app: :validate,
+      name: "Validate",
       description: description(),
       package: package(),
-      version: "0.1.1",
+      version: "0.2.1",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -35,7 +35,7 @@ defmodule Consent.MixProject do
   defp package() do
     [
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/nehero/consent"}
+      links: %{"GitHub" => "https://github.com/nehero/validate"}
     ]
   end
 end

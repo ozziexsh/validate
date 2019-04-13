@@ -1,7 +1,7 @@
-defmodule ConsentTest.Required do
+defmodule ValidateTest.Required do
   use ExUnit.Case
-  alias Consent.Required
-  doctest Consent.Required
+  alias Validate.Required
+  doctest Validate.Required
 
   test "returns error when input is not present" do
     input = %{}
@@ -10,7 +10,7 @@ defmodule ConsentTest.Required do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) == {:error, %{"username" => "required"}}
+    assert Validate.validate(input, rules) == {:error, %{"username" => "required"}}
   end
 
   test "returns error when string and empty" do
@@ -20,7 +20,7 @@ defmodule ConsentTest.Required do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:error, %{"username" => "required"}}
   end
 
@@ -31,7 +31,7 @@ defmodule ConsentTest.Required do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:ok, %{"username" => "allo"}}
   end
 
@@ -42,7 +42,7 @@ defmodule ConsentTest.Required do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:error, %{"username" => "required"}}
   end
 
@@ -53,7 +53,7 @@ defmodule ConsentTest.Required do
       "username" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:ok, %{"username" => [1, 2, 3]}}
   end
 
@@ -64,7 +64,7 @@ defmodule ConsentTest.Required do
       "map" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:error, %{"map" => "required"}}
   end
 
@@ -75,7 +75,7 @@ defmodule ConsentTest.Required do
       "map" => [&Required.required/1]
     }
 
-    assert Consent.validate(input, rules) ==
+    assert Validate.validate(input, rules) ==
              {:ok, %{"map" => %{"key" => "value"}}}
   end
 
@@ -84,13 +84,13 @@ defmodule ConsentTest.Required do
       "value" => [&Required.required/1]
     }
 
-    assert Consent.validate(%{"value" => 0}, rules) ==
+    assert Validate.validate(%{"value" => 0}, rules) ==
              {:ok, %{"value" => 0}}
 
-    assert Consent.validate(%{"value" => -1}, rules) ==
+    assert Validate.validate(%{"value" => -1}, rules) ==
              {:ok, %{"value" => -1}}
 
-    assert Consent.validate(%{"value" => 1}, rules) ==
+    assert Validate.validate(%{"value" => 1}, rules) ==
              {:ok, %{"value" => 1}}
   end
 end
