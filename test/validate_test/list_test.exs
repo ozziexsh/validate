@@ -3,6 +3,16 @@ defmodule ValidateTest.List do
   alias Validate.List
   doctest Validate.List
 
+  test "can be called via an atom" do
+    input = %{}
+
+    rules = %{
+      "cities" => [:list]
+    }
+
+    assert Validate.validate(input, rules) == {:error, %{"cities" => "not a list"}}
+  end
+
   test "returns error when input is not present" do
     input = %{}
 

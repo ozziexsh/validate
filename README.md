@@ -8,7 +8,7 @@ Coming from languages like PHP and Node.js it can be difficult to reason about v
 
 ## Todo
 
-- Give option to provide atoms in rule lists for simple validators to get rid of needing to import each one
+- ~~Give option to provide atoms in rule lists for simple validators to get rid of needing to import each one~~
 - Test usage with mixed keys (`:atoms` and `"strings"`)
 - Add more out-of-the-box validators
 - Provide documentation on custom validators
@@ -23,7 +23,7 @@ by adding `validate` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:validate, "~> 0.1.1"}
+    {:validate, "~> 0.2.2"}
   ]
 end
 ```
@@ -33,7 +33,6 @@ end
 ```elixir
 defmodule MyApp.UserController do
   import Validate
-  import Validate.Required
 
   def create(conn, params) do
     case validate(params, create_rules) do
@@ -49,7 +48,7 @@ defmodule MyApp.UserController do
   end
 
   defp create_rules, do: %{
-    "username": [&required/1],
+    "username": [:required],
   }
 end
 ```
@@ -68,11 +67,10 @@ Validates input is not:
 
 ```elixir
 import Validate
-import Validate.Required
 data = %{ "username" => "" }
 rules = %{
   "username" => [
-    &required/1
+    :required
   ]
 }
 validate(data, rules)
@@ -88,13 +86,11 @@ Does not continue with the rest of the validators if the value is not present or
 
 ```elixir
 import Validate
-import Validate.Optional
-import Validate.String
 data = %{}
 rules = %{
   "username" => [
-    &optional/1,
-    &string/1,
+    :optional,
+    :string,
   ]
 }
 # value not present, so it's ok
@@ -104,13 +100,11 @@ validate(data, rules)
 
 ```elixir
 import Validate
-import Validate.Optional
-import Validate.String
 data = %{ "username" => 123 }
 rules = %{
   "username" => [
-    &optional/1,
-    &string/1,
+    :optional,
+    :string,
   ]
 }
 # value present, so it continues on to next validators
@@ -124,13 +118,12 @@ Validates input is a string
 
 ```elixir
 import Validate
-import Validate.String
 data = %{
   "username" => 123
 }
 rules = %{
   "username" => [
-    &string/1,
+    :string,
   ]
 }
 validate(data, rules)
@@ -143,13 +136,12 @@ Validates input is a number (float or int)
 
 ```elixir
 import Validate
-import Validate.Number
 data = %{
   "balance" => "very low"
 }
 rules = %{
   "balance" => [
-    &number/1,
+    :number,
   ]
 }
 validate(data, rules)
@@ -162,13 +154,12 @@ Validates input is a list (array)
 
 ```elixir
 import Validate
-import Validate.List
 data = %{
   "cities" => "saskatoon"
 }
 rules = %{
   "cities" => [
-    &list/1,
+    :list,
   ]
 }
 validate(data, rules)

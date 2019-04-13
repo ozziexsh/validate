@@ -3,6 +3,16 @@ defmodule ValidateTest.Required do
   alias Validate.Required
   doctest Validate.Required
 
+  test "it can be called via an atom" do
+    input = %{}
+
+    rules = %{
+      "username" => [:required]
+    }
+
+    assert Validate.validate(input, rules) == {:error, %{"username" => "required"}}
+  end
+
   test "returns error when input is not present" do
     input = %{}
 
@@ -66,6 +76,17 @@ defmodule ValidateTest.Required do
 
     assert Validate.validate(input, rules) ==
              {:error, %{"map" => "required"}}
+  end
+
+  test "it does not continue to next validators on error" do
+    input = %{"username" => ""}
+
+    rules = %{
+      "username" => [:required, :string]
+    }
+
+    assert Validate.validate(input, rules) ==
+             {:error, %{"username" => "required"}}
   end
 
   test "returns ok when map and not empty" do

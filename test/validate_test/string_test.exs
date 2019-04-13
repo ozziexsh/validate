@@ -3,6 +3,16 @@ defmodule ValidateTest.String do
   alias Validate.String
   doctest Validate.String
 
+  test "it can be called via an atom" do
+    input = %{}
+
+    rules = %{
+      "username" => [:string]
+    }
+
+    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+  end
+
   test "returns error when input is not present" do
     input = %{}
 

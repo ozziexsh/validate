@@ -4,7 +4,7 @@ defmodule ValidateTest.Optional do
   alias Validate.Optional
 
   doctest Validate.Optional
-
+  
   test "it should return skip when not present" do
     input = %{}
 
@@ -17,6 +17,16 @@ defmodule ValidateTest.Optional do
     }
 
     assert Optional.optional(Map.get(input, "username")) == {:skip}
+  end
+
+  test "it can be called via an atom" do
+    input = %{}
+
+    rules = %{
+      "username" => [:optional]
+    }
+
+    assert Validate.validate(input, rules) == {:ok, %{}}
   end
 
   test "it should return ok when nil" do

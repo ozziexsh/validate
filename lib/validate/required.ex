@@ -27,6 +27,6 @@ defmodule Validate.Required do
     end
   end
 
-  defp error, do: {:error, "required"}
+  defp error, do: {:skip, "required"}
   defp success(val), do: {:ok, val}
 end

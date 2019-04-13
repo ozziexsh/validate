@@ -3,6 +3,16 @@ defmodule ValidateTest.Number do
   alias Validate.Number
   doctest Validate.Number
 
+  test "can be called via an atom" do
+    input = %{}
+
+    rules = %{
+      "balance" => [:number]
+    }
+
+    assert Validate.validate(input, rules) == {:error, %{"balance" => "not a number"}}
+  end
+  
   test "returns error when input is not present" do
     input = %{}
 

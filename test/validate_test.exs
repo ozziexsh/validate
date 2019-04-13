@@ -55,4 +55,12 @@ defmodule ValidateTest do
     assert Validate.validate(input, rules) ==
              {:ok, %{"username" => "test"}}
   end
+
+  test "it supports predefined atoms as validators" do
+    input = %{}
+    rules = %{"username" => [:required, :string]}
+
+    assert Validate.validate(input, rules) ==
+             {:error, %{"username" => "required"}}
+  end
 end

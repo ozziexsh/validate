@@ -3,6 +3,14 @@ defmodule Validate do
   Validate, validate incoming requests in an easy to reason-about way.
   """
 
+  @fn_map %{
+    :required => &Validate.Required.required/1,
+    :optional => &Validate.Optional.optional/1,
+    :string => &Validate.String.string/1,
+    :number => &Validate.Number.number/1,
+    :list => &Validate.List.list/1,
+  }
+
   @doc """
   Validate.validate/2, the entry point for validation.
   Takes in a struct. Returns either:
@@ -21,6 +29,9 @@ defmodule Validate do
 
           {:error, msg} ->
             {data, Map.put(errors, key, msg)}
+          
+          {:skip, msg} ->
+            {data, Map.put(errors, key, msg)}
 
           {:skip} ->
             {data, errors}
@@ -31,6 +42,16 @@ defmodule Validate do
   end
 
   defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
+  defp evaluate_validator(_value, _validator, {:skip, msg} = acc), do: acc
+
+  defp evaluate_validator(value, validator, _acc) when is_atom(validator) do
+    if Map.has_key?(@fn_map, validator) do
+      Map.get(@fn_map, validator).(value)
+    else
+      {:error, "invalid validator"}
+    end
+  end
+
   defp evaluate_validator(value, validator, _acc), do: validator.(value)
 
   defp result(data, errors) when map_size(errors) == 0, do: {:ok, data}
