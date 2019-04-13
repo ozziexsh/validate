@@ -200,12 +200,12 @@ data = %{
 rules = %{
   "user" => [
     :required,
-    :map: %{
+    map: %{
       "username" => [:required, :string],
       "password" => [:required, :string],
-      "team" => %{
+      "team" => [map: %{
         "name" => [:required, :string]
-      }
+      }]
     }
   ]
 }

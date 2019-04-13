@@ -66,6 +66,22 @@ defmodule ValidateTest.Map do
               }}
   end
 
+  test "it validates that the input is a map before doing nested validation" do
+    input = %{
+      "user" => 123
+    }
+
+    rules = %{
+      "user" => [map: %{"username" => [:required]}]
+    }
+
+    assert Validate.validate(input, rules) ==
+             {:error,
+              %{
+                "user" => "not a map"
+              }}
+  end
+
   test "it validates 1 level deep" do
     input = %{
       "user" => %{
