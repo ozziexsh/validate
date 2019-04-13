@@ -11,9 +11,11 @@ Coming from languages like PHP and Node.js it can be difficult to reason about v
 - ~~Give option to provide atoms in rule lists for simple validators to get rid of needing to import each one~~
 - Test usage with mixed keys (`:atoms` and `"strings"`)
 - Add more out-of-the-box validators
-- Provide documentation on custom validators
-- i18n
+- ~~Provide documentation on custom validators~~
+- i18n support for errors
 - Support more input params than just maps
+- Make `:skip` api more clear
+- Turn errors into list
 
 ## Installation
 
@@ -51,6 +53,47 @@ defmodule MyApp.UserController do
     "username": [:required],
   }
 end
+```
+
+## Custom Validators
+
+Writing your own validator is as simple as writing a function that returns one of four results:
+
+```elixir
+# valid, pass on value and continue with rest of validators
+{:ok, value}
+# invalid, provide reason
+{:error, message}
+
+# (WIP Prevent further validation)
+# invalid, provide reason and do not continue with rest of validators
+{:skip, message}
+# valid, but do not continue
+{:skip}
+```
+
+Let's build a validator that expects a string and ensures that it is one of `n` values.
+
+```elixir
+defmodule MyApp.Allowed do
+  def allowed(ok_values, value) when value in ok_values, do: {:ok, value}
+  def allowed(_ok_values, _value), do: {:error, "value not allowed"}
+end
+```
+
+Now we can simply use it like so:
+
+```elixir
+import Validate
+import MyApp.Allowed
+input = %{
+  "plan" => "elite"
+}
+rules = %{
+  "plan" => [:required, :string, &allowed(["basic", "pro"], &1)]
+}
+validate(input, rules)
+# {:error, %{"plan" => "value not allowed"}}
 ```
 
 ## Validators
