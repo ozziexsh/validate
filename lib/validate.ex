@@ -53,8 +53,8 @@ defmodule Validate do
     end
   end
 
-  defp evaluate_validator(value, validator, _acc) when is_map(validator) do
-    validate(value, validator)
+  defp evaluate_validator(value, {:map, nested_rules}, _acc) do
+    validate(value, nested_rules)
   end
 
   defp evaluate_validator(value, validator, _acc), do: validator.(value)

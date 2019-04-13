@@ -74,7 +74,7 @@ defmodule ValidateTest.Map do
     }
 
     rules = %{
-      "user" => [:map, %{"username" => [:required]}]
+      "user" => [map: %{"username" => [:required]}]
     }
 
     assert Validate.validate(input, rules) ==
@@ -99,11 +99,10 @@ defmodule ValidateTest.Map do
 
     rules = %{
       "user" => [
-        :map,
-        %{
+        map: %{
           "username" => [:required],
           "password" => [:required],
-          "team" => [%{"name" => [:required]}]
+          "team" => [map: %{"name" => [:required]}]
         }
       ]
     }
