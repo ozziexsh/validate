@@ -165,3 +165,62 @@ rules = %{
 validate(data, rules)
 # {:error, %{"balance" => "not a list"}}
 ```
+
+### Map
+
+Validates input is a map (object). Can be used to specify nested validations.
+
+Simple use case:
+
+```elixir
+import Validate
+data = %{
+  "user" => 123
+}
+rules = %{
+  "user" => [:map]
+}
+validate(data, rules)
+# {:error, %{"user" => "not a map"}}
+```
+
+Nested use case:
+
+```elixir
+import Validate
+data = %{
+  "user" => %{
+    "username" => "nehero",
+    "password" => "",
+    "team" => %{
+      "name" => ""
+    }
+  }
+}
+rules = %{
+  "user" => [
+    :required,
+    :map,
+    %{
+      "username" => [:required, :string],
+      "password" => [:required, :string],
+      "team" => %{
+        "name" => [:required, :string]
+      }
+    }
+  ]
+}
+validate(data, rules)
+#{
+#  :error,
+#  %{
+#    "user" => %{
+#      "password" => "required",
+#      "team" => %{
+#        "name" => "required"
+#      }
+#    }
+#  }
+#}
+"""
+```
