@@ -6,6 +6,8 @@ defmodule Validate.Required do
   If it's a map, checks that it has at least one property
   """
 
+  def required(val \\ nil)
+
   def required(val) when is_binary(val) do
     case String.length(val) do
       0 -> error()
@@ -20,7 +22,7 @@ defmodule Validate.Required do
     end
   end
 
-  def required(val \\ nil) do
+  def required(val) do
     case val do
       nil -> error()
       _ -> success(val)

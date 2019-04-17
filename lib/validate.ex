@@ -22,7 +22,7 @@ defmodule Validate do
     {data, errors} =
       Enum.reduce(rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
         value = Map.get(params, key)
-        res = Enum.reduce(item_rules, {:ok, nil}, &evaluate_validator(value, &1, &2))
+        res = Enum.reduce(item_rules, {:ok, nil}, &run_validator(value, &1, &2))
 
         case res do
           {:ok, x} ->
@@ -42,10 +42,14 @@ defmodule Validate do
     result(data, errors)
   end
 
-  defp evaluate_validator(_value, _validator, {:skip} = acc), do: acc
-  defp evaluate_validator(_value, _validator, {:skip, msg} = acc), do: acc
+  # When a validator says skip we want to forward along the skip param
+  # so that the rest of the validators dont fire
+  defp run_validator(_value, _validator, {:skip} = acc), do: acc
+  
+  defp run_validator(_value, _validator, {:skip, _msg} = acc), do: acc
 
-  defp evaluate_validator(value, validator, _acc) when is_atom(validator) do
+  # Handles `:atom` keys in rule lists
+  defp run_validator(value, validator, _acc) when is_atom(validator) do
     if Map.has_key?(@fn_map, validator) do
       Map.get(@fn_map, validator).(value)
     else
@@ -53,7 +57,9 @@ defmodule Validate do
     end
   end
 
-  defp evaluate_validator(value, {:map, nested_rules}, _acc) do
+  # When a `[map: %{}]` is passed in a rule list, we want to just call
+  # the same `validate` function on the map so it gets handled the same
+  defp run_validator(value, {:map, nested_rules}, _acc) do
     if is_map(value) and is_map(nested_rules) do
       validate(value, nested_rules)
     else
@@ -61,8 +67,9 @@ defmodule Validate do
     end
   end
 
-  defp evaluate_validator(value, validator, _acc), do: validator.(value)
+  # Handles custom validators passed via function reference
+  defp run_validator(value, validator, _acc), do: validator.(value)
 
   defp result(data, errors) when map_size(errors) == 0, do: {:ok, data}
-  defp result(data, errors), do: {:error, errors}
+  defp result(_data, errors), do: {:error, errors}
 end
