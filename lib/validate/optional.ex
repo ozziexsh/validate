@@ -1,4 +1,8 @@
 defmodule Validate.Optional do
-  def optional(nil), do: {:skip}
-  def optional(val), do: {:ok, val}
+  def optional() do
+    fn value -> check(value) end
+  end
+
+  defp check(nil), do: {:halt}
+  defp check(val), do: {:ok, val}
 end

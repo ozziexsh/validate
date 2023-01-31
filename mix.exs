@@ -34,8 +34,8 @@ defmodule Validate.MixProject do
 
   defp package() do
     [
-      licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/nehero/validate"}
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/ozziexsh/validate"}
     ]
   end
 end

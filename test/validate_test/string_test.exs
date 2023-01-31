@@ -7,79 +7,79 @@ defmodule ValidateTest.String do
     input = %{}
 
     rules = %{
-      "username" => [:string]
+      username: [:string]
     }
 
-    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{username: "not a string"}}
   end
 
   test "returns error when input is not present" do
     input = %{}
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{username: "not a string"}}
   end
 
   test "returns error when input is an int" do
     input = %{
-      "username" => 1
+      username: 1
     }
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{username: "not a string"}}
   end
 
   test "returns error when input is a list" do
     input = %{
-      "username" => [1, 2, 3]
+      username: [1, 2, 3]
     }
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{username: "not a string"}}
   end
 
   test "returns error when input is a map" do
     input = %{
-      "username" => %{"key" => "val"}
+      username: %{"key" => "val"}
     }
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:error, %{"username" => "not a string"}}
+    assert Validate.validate(input, rules) == {:error, %{username: "not a string"}}
   end
 
   test "returns ok when input is empty string" do
     input = %{
-      "username" => ""
+      username: ""
     }
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:ok, %{"username" => ""}}
+    assert Validate.validate(input, rules) == {:ok, %{username: ""}}
   end
 
   test "returns ok when input is a string" do
     input = %{
-      "username" => "123"
+      username: "123"
     }
 
     rules = %{
-      "username" => [&String.string/1]
+      username: [String.string()]
     }
 
-    assert Validate.validate(input, rules) == {:ok, %{"username" => "123"}}
+    assert Validate.validate(input, rules) == {:ok, %{username: "123"}}
   end
 end

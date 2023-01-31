@@ -6,29 +6,31 @@ defmodule Validate.Required do
   If it's a map, checks that it has at least one property
   """
 
-  def required(val \\ nil)
+  def required() do
+    fn value -> check(value) end
+  end
 
-  def required(val) when is_binary(val) do
+  defp check(val) when is_binary(val) do
     case String.length(val) do
       0 -> error()
       _ -> success(val)
     end
   end
 
-  def required(val) when is_list(val) or is_map(val) do
+  defp check(val) when is_list(val) or is_map(val) do
     case Enum.count(val) do
       0 -> error()
       _ -> success(val)
     end
   end
 
-  def required(val) do
+  defp check(val) do
     case val do
       nil -> error()
       _ -> success(val)
     end
   end
 
-  defp error, do: {:skip, "required"}
+  defp error, do: {:halt, "required"}
   defp success(val), do: {:ok, val}
 end

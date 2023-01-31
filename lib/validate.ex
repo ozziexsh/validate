@@ -3,15 +3,6 @@ defmodule Validate do
   Validate, validate incoming requests in an easy to reason-about way.
   """
 
-  @fn_map %{
-    :required => &Validate.Required.required/1,
-    :optional => &Validate.Optional.optional/1,
-    :string => &Validate.String.string/1,
-    :number => &Validate.Number.number/1,
-    :list => &Validate.List.list/1,
-    :map => &Validate.Map.map/1
-  }
-
   @doc """
   Validate.validate/2, the entry point for validation.
   Takes in a struct. Returns either:
@@ -19,10 +10,13 @@ defmodule Validate do
   Data returned is filtered out to only keys provided in rules
   """
   def validate(params, rules) do
+    normalized_params = normalize_data(params)
+    normalized_rules = normalize_data(rules)
+
     {data, errors} =
-      Enum.reduce(rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
-        value = Map.get(params, key)
-        res = Enum.reduce(item_rules, {:ok, nil}, &run_validator(value, &1, &2))
+      Enum.reduce(normalized_rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
+        value = Map.get(normalized_params, key)
+        res = Enum.reduce(item_rules, {:ok, nil}, &run_validator(key, value, &1, &2))
 
         case res do
           {:ok, x} ->
@@ -31,10 +25,13 @@ defmodule Validate do
           {:error, msg} ->
             {data, Map.put(errors, key, msg)}
 
-          {:skip, msg} ->
+          {:merge, nested_errors} ->
+            {data, Map.merge(errors, nested_errors)}
+
+          {n, msg} when n in [:skip, :halt] ->
             {data, Map.put(errors, key, msg)}
 
-          {:skip} ->
+          {n} when n in [:skip, :halt] ->
             {data, errors}
         end
       end)
@@ -42,34 +39,115 @@ defmodule Validate do
     result(data, errors)
   end
 
+  defp normalize_data(data) when is_map(data) do
+    Enum.reduce(data, %{}, fn {k, v}, acc -> Map.put(acc, force_atom(k), normalize_data(v)) end)
+  end
+
+  defp normalize_data(data) when is_list(data) do
+    Enum.map(data, fn item -> normalize_data(item) end)
+  end
+
+  defp normalize_data(data), do: data
+
+  defp force_atom(var) when is_atom(var), do: var
+  defp force_atom(var) when is_binary(var), do: String.to_atom(var)
+
   # When a validator says skip we want to forward along the skip param
   # so that the rest of the validators dont fire
-  defp run_validator(_value, _validator, {:skip} = acc), do: acc
-  
-  defp run_validator(_value, _validator, {:skip, _msg} = acc), do: acc
+  defp run_validator(_key, _value, _validator, {n} = acc) when n in [:skip, :halt], do: acc
+
+  defp run_validator(_key, _value, _validator, {n, _msg} = acc) when n in [:skip, :halt], do: acc
 
   # Handles `:atom` keys in rule lists
-  defp run_validator(value, validator, _acc) when is_atom(validator) do
-    if Map.has_key?(@fn_map, validator) do
-      Map.get(@fn_map, validator).(value)
+  defp run_validator(_key, value, validator, _acc) when is_atom(validator) do
+    if Map.has_key?(function_map(), validator) do
+      Map.get(function_map(), validator).(value)
     else
       {:error, "invalid validator"}
     end
   end
 
+  defp run_validator(key, value, {:list, rules}, _acc) when is_list(value) and is_map(rules) do
+    results = Enum.map(value, fn item -> validate(item, rules) end)
+
+    has_errors =
+      results
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {item, index}, acc ->
+        case item do
+          {:ok, _} ->
+            acc
+
+          {:error, errors} ->
+            Enum.reduce(errors, acc, fn {k, v}, nested_acc ->
+              Map.put(nested_acc, :"#{key}.#{index}.#{k}", v)
+            end)
+        end
+      end)
+
+    case Enum.empty?(has_errors) do
+      true -> {:ok, Enum.map(results, fn {:ok, data} -> data end)}
+      false -> {:merge, has_errors}
+    end
+  end
+
+  defp run_validator(key, value, {:list, rules}, _acc) when is_list(value) and is_list(rules) do
+    results = Enum.map(value, fn item -> validate(%{item: item}, %{item: rules}) end)
+
+    has_errors =
+      results
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {item, index}, acc ->
+        case item do
+          {:ok, _} -> acc
+          {:error, errors} -> Map.put(acc, :"#{key}.#{index}", errors.item)
+        end
+      end)
+
+    case Enum.empty?(has_errors) do
+      true -> {:ok, Enum.map(results, fn {:ok, data} -> data end)}
+      false -> {:merge, has_errors}
+    end
+  end
+
+  defp run_validator(_key, value, {:list, _rules}, _acc) do
+    Map.get(function_map(), :list).(value)
+  end
+
   # When a `[map: %{}]` is passed in a rule list, we want to just call
   # the same `validate` function on the map so it gets handled the same
-  defp run_validator(value, {:map, nested_rules}, _acc) do
+  defp run_validator(key, value, {:map, nested_rules}, _acc) do
     if is_map(value) and is_map(nested_rules) do
-      validate(value, nested_rules)
+      case validate(value, nested_rules) do
+        {:error, errors} ->
+          flattened =
+            Enum.reduce(errors, %{}, fn {k, v}, acc ->
+              Map.put(acc, :"#{key}.#{k}", v)
+            end)
+
+          {:merge, flattened}
+
+        res ->
+          res
+      end
     else
-      Map.get(@fn_map, :map).(value)
+      Map.get(function_map(), :map).(value)
     end
   end
 
   # Handles custom validators passed via function reference
-  defp run_validator(value, validator, _acc), do: validator.(value)
+  defp run_validator(_key, value, validator, _acc), do: validator.(value)
 
   defp result(data, errors) when map_size(errors) == 0, do: {:ok, data}
   defp result(_data, errors), do: {:error, errors}
+
+  defp function_map(),
+    do: %{
+      required: Validate.Required.required(),
+      optional: Validate.Optional.optional(),
+      string: Validate.String.string(),
+      number: Validate.Number.number(),
+      list: Validate.List.list(),
+      map: Validate.Map.map()
+    }
 end
