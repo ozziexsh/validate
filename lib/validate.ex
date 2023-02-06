@@ -1,6 +1,6 @@
 defmodule Validate do
   @moduledoc """
-  Validate, validate incoming requests in an easy to reason-about way.
+  Validate incoming requests in an easy to reason-about way.
   """
 
   @doc """
@@ -10,12 +10,9 @@ defmodule Validate do
   Data returned is filtered out to only keys provided in rules
   """
   def validate(params, rules) do
-    normalized_params = normalize_data(params)
-    normalized_rules = normalize_data(rules)
-
     {data, errors} =
-      Enum.reduce(normalized_rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
-        value = Map.get(normalized_params, key)
+      Enum.reduce(rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
+        value = Map.get(params, key)
         res = Enum.reduce(item_rules, {:ok, nil}, &run_validator(key, value, &1, &2))
 
         case res do
@@ -38,19 +35,6 @@ defmodule Validate do
 
     result(data, errors)
   end
-
-  defp normalize_data(data) when is_map(data) do
-    Enum.reduce(data, %{}, fn {k, v}, acc -> Map.put(acc, force_atom(k), normalize_data(v)) end)
-  end
-
-  defp normalize_data(data) when is_list(data) do
-    Enum.map(data, fn item -> normalize_data(item) end)
-  end
-
-  defp normalize_data(data), do: data
-
-  defp force_atom(var) when is_atom(var), do: var
-  defp force_atom(var) when is_binary(var), do: String.to_atom(var)
 
   # When a validator says skip we want to forward along the skip param
   # so that the rest of the validators dont fire

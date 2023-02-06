@@ -116,7 +116,7 @@ defmodule ValidateTest.List do
               }}
   end
 
-  test "it validates and converts keys" do
+  test "it validates and preserves key types" do
     input = %{
       "users" => [
         %{
@@ -135,10 +135,10 @@ defmodule ValidateTest.List do
     }
 
     rules = %{
-      users: [
+      "users" => [
         list: %{
-          username: [:required],
-          team: [map: %{name: [:required]}]
+          "username" => [:required],
+          "team" => [map: %{"name" => [:required]}]
         }
       ]
     }
@@ -146,14 +146,14 @@ defmodule ValidateTest.List do
     assert Validate.validate(input, rules) ==
              {:ok,
               %{
-                users: [
+                "users" => [
                   %{
-                    username: "test",
-                    team: %{name: "test"}
+                    "username" => "test",
+                    "team" => %{"name" => "test"}
                   },
                   %{
-                    username: "test2",
-                    team: %{name: "test2"}
+                    "username" => "test2",
+                    "team" => %{"name" => "test2"}
                   }
                 ]
               }}

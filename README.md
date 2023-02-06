@@ -65,11 +65,10 @@ Writing your own validator is as simple as writing a function that returns one o
 # invalid, provide reason
 {:error, message}
 
-# (WIP Prevent further validation)
 # invalid, provide reason and do not continue with rest of validators
-{:skip, message}
+{:halt, message}
 # valid, but do not continue
-{:skip}
+{:halt}
 ```
 
 Let's build a validator that expects a string and ensures that it is one of `n` values.
@@ -86,12 +85,15 @@ Now we can simply use it like so:
 ```elixir
 import Validate
 import MyApp.Allowed
+
 input = %{
   "plan" => "elite"
 }
+
 rules = %{
   "plan" => [:required, :string, &allowed(["basic", "pro"], &1)]
 }
+
 validate(input, rules)
 # {:error, %{"plan" => "value not allowed"}}
 ```
@@ -102,8 +104,7 @@ validate(input, rules)
 
 Validates input is not:
 
-- `undefined`
-- `null`
+- `nil`
 - `""`
 - `[]`
 - `{}`
@@ -124,18 +125,18 @@ validate(data, rules)
 
 Does not continue with the rest of the validators if the value is not present or nil
 
-- `undefined`
-- `null`
-
 ```elixir
 import Validate
+
 data = %{}
+
 rules = %{
   "username" => [
     :optional,
     :string,
   ]
 }
+
 # value not present, so it's ok
 validate(data, rules)
 # {:ok, %{}}
@@ -143,13 +144,16 @@ validate(data, rules)
 
 ```elixir
 import Validate
+
 data = %{ "username" => 123 }
+
 rules = %{
   "username" => [
     :optional,
     :string,
   ]
 }
+
 # value present, so it continues on to next validators
 validate(data, rules)
 # {:error, %{"username" => "not a string"}}
@@ -161,14 +165,17 @@ Validates input is a string
 
 ```elixir
 import Validate
+
 data = %{
   "username" => 123
 }
+
 rules = %{
   "username" => [
     :string,
   ]
 }
+
 validate(data, rules)
 # {:error, %{"username" => "not a string"}}
 ```
@@ -179,14 +186,17 @@ Validates input is a number (float or int)
 
 ```elixir
 import Validate
+
 data = %{
   "balance" => "very low"
 }
+
 rules = %{
   "balance" => [
     :number,
   ]
 }
+
 validate(data, rules)
 # {:error, %{"balance" => "not a number"}}
 ```
@@ -197,14 +207,17 @@ Validates input is a list (array)
 
 ```elixir
 import Validate
+
 data = %{
   "cities" => "saskatoon"
 }
+
 rules = %{
   "cities" => [
     :list,
   ]
 }
+
 validate(data, rules)
 # {:error, %{"balance" => "not a list"}}
 ```
@@ -217,12 +230,15 @@ Simple use case:
 
 ```elixir
 import Validate
+
 data = %{
   "user" => 123
 }
+
 rules = %{
   "user" => [:map]
 }
+
 validate(data, rules)
 # {:error, %{"user" => "not a map"}}
 ```
@@ -231,15 +247,17 @@ Nested use case:
 
 ```elixir
 import Validate
+
 data = %{
   "user" => %{
-    "username" => "nehero",
+    "username" => "bob",
     "password" => "",
     "team" => %{
       "name" => ""
     }
   }
 }
+
 rules = %{
   "user" => [
     :required,
@@ -252,6 +270,7 @@ rules = %{
     }
   ]
 }
+
 validate(data, rules)
 #{
 #  :error,
@@ -264,5 +283,4 @@ validate(data, rules)
 #    }
 #  }
 #}
-"""
 ```

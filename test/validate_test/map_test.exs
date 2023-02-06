@@ -112,7 +112,7 @@ defmodule ValidateTest.Map do
     }
 
     rules = %{
-      "user" => [
+      user: [
         map: %{
           username: [:required],
           password: [:required],
@@ -129,7 +129,7 @@ defmodule ValidateTest.Map do
               }}
   end
 
-  test "it validates and converts keys" do
+  test "it keeps key types" do
     input = %{
       "user" => %{
         "username" => "test",
@@ -140,10 +140,10 @@ defmodule ValidateTest.Map do
     }
 
     rules = %{
-      user: [
+      "user" => [
         map: %{
-          username: [:required],
-          team: [map: %{name: [:required]}]
+          "username" => [:required],
+          "team" => [map: %{"name" => [:required]}]
         }
       ]
     }
@@ -151,9 +151,9 @@ defmodule ValidateTest.Map do
     assert Validate.validate(input, rules) ==
              {:ok,
               %{
-                user: %{
-                  username: "test",
-                  team: %{name: "test"}
+                "user" => %{
+                  "username" => "test",
+                  "team" => %{"name" => "test"}
                 }
               }}
   end
