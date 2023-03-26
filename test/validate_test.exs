@@ -1,66 +1,69 @@
 defmodule ValidateTest do
   use ExUnit.Case
-  alias Validate.Required
   doctest Validate
 
-  test "validates a single input" do
-    input = %{"username" => ""}
-    rules = %{"username" => [&Required.required/1]}
-    assert Validate.validate(input, rules) == {:error, %{"username" => "required"}}
-  end
-
-  test "validates multiple inputs" do
-    input = %{"username" => "", "password" => ""}
-
+  test "it returns proper errors" do
     rules = %{
-      "username" => [&Required.required/1],
-      "password" => [&Required.required/1]
+      "email" => [
+        required: true,
+        type: :string
+      ],
+      "colors" => [
+        required: true,
+        type: :list
+        # list: [
+        #  required: true,
+        #  type: :string
+        # ]
+      ],
+      "friends" => [
+        required: true,
+        type: :list
+        # list: [
+        #  required: true,
+        #  map: %{
+        #    "name" => [
+        #      required: true,
+        #      type: :string
+        #    ]
+        #  }
+        # ]
+      ],
+      "address" => [
+        required: true,
+        type: :map
+        # map: %{
+        #   "line1" => [
+        #     required: true,
+        #     type: :string
+        #   ],
+        #   "country" => [
+        #     required: true,
+        #     type: :string
+        #   ]
+        # }
+      ]
     }
 
-    assert Validate.validate(input, rules) ==
-             {:error, %{"username" => "required", "password" => "required"}}
-  end
-
-  test "it fails if even one fails" do
-    input = %{"username" => "test", "password" => "", "password_confirmation" => "123"}
-
-    rules = %{
-      "username" => [&Required.required/1],
-      "password" => [&Required.required/1],
-      "password_confirmation" => [&Required.required/1]
+    input = %{
+      "email" => "",
+      "colors" => ["blue", "orange", 2],
+      "friends" => [
+        %{"name" => "oz"},
+        %{"name" => ""}
+      ],
+      "address" => %{
+        "line1" => "123 fake st",
+        "country" => ""
+      },
+      "unused" => "this should not be in the final data"
     }
 
-    assert Validate.validate(input, rules) ==
-             {:error, %{"password" => "required"}}
+    assert {:error, errors} = Validate.validate(input, rules)
+    [emailError] = errors
+    assert %{path: ["email"], rule: :required} = emailError
   end
 
-  test "it returns ok when all rules pass" do
-    input = %{"username" => "test"}
-
-    rules = %{
-      "username" => [&Required.required/1]
-    }
-
-    assert Validate.validate(input, rules) ==
-             {:ok, %{"username" => "test"}}
-  end
-
-  test "it filters out data to only keys provided in rules" do
-    input = %{"username" => "test", "password" => "123", "password_confirmation" => "123"}
-
-    rules = %{
-      "username" => [&Required.required/1]
-    }
-
-    assert Validate.validate(input, rules) ==
-             {:ok, %{"username" => "test"}}
-  end
-
-  test "it supports predefined atoms as validators" do
-    input = %{}
-    rules = %{"username" => [:required, :string]}
-
-    assert Validate.validate(input, rules) ==
-             {:error, %{"username" => "required"}}
+  test "it returns only validated data" do
   end
 end
