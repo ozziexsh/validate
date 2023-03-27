@@ -2,6 +2,8 @@ defmodule ValidateTest do
   use ExUnit.Case
   doctest Validate
 
+  import Validate.Validator
+
   test "it returns proper errors" do
     rules = %{
       "email" => [
@@ -100,5 +102,19 @@ defmodule ValidateTest do
     assert Map.get(data, "email") == "somethin"
     assert get_in(data, ["address", "line1"]) == "123 fake st"
     assert get_in(data, ["address", "city"]) == nil
+  end
+
+  test "it handles custom validators" do
+    rules = %{
+      "email" => [
+        required: true,
+        custom: &if(&1.value == "rabbit", do: success("rabbit"), else: error("custom failed"))
+      ]
+    }
+
+    assert {:ok, %{"email" => "rabbit"}} == Validate.validate(%{"email" => "rabbit"}, rules)
+
+    assert {:error, [%{path: ["email"], rule: :custom}]} =
+             Validate.validate(%{"email" => "season"}, rules)
   end
 end

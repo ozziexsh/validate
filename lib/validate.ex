@@ -111,7 +111,7 @@ defmodule Validate do
   end
 
   defp run_validator_rule(opts) do
-    handler = Map.get(@fn_map, opts.rule)
+    handler = if opts.rule == :custom, do: opts.arg, else: Map.get(@fn_map, opts.rule)
 
     result = handler.(%Arg{value: opts.value, arg: opts.arg, input: opts.input})
 

@@ -20,4 +20,13 @@ defmodule Validate.Util do
       true -> "unknown"
     end
   end
+
+  def errors_to_map(errors) do
+    Enum.reduce(errors, %{}, fn error, acc ->
+      key = Enum.join(error.path, ".")
+      existing = Map.get(acc, key, [])
+
+      Map.put(acc, key, existing ++ [error.message])
+    end)
+  end
 end
