@@ -76,5 +76,29 @@ defmodule ValidateTest do
   end
 
   test "it returns only validated data" do
+    rules = %{
+      "email" => [required: true, type: :string],
+      "address" => [
+        required: true,
+        map: %{
+          "line1" => [required: true]
+        }
+      ]
+    }
+
+    input = %{
+      "email" => "somethin",
+      "address" => %{
+        "line1" => "123 fake st",
+        "city" => "saskatoon"
+      },
+      "unexpected" => "asdhadas"
+    }
+
+    assert {:ok, data} = Validate.validate(input, rules)
+    assert Map.get(data, "unexpected") == nil
+    assert Map.get(data, "email") == "somethin"
+    assert get_in(data, ["address", "line1"]) == "123 fake st"
+    assert get_in(data, ["address", "city"]) == nil
   end
 end

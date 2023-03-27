@@ -2,6 +2,7 @@ defmodule Validate do
   @moduledoc """
   Validate, validate incoming requests in an easy to reason-about way.
   """
+  alias Validate.Validator.{Error, Arg}
 
   @fn_map %{
     required: &Validate.Required.validate/1,
@@ -112,14 +113,14 @@ defmodule Validate do
   defp run_validator_rule(opts) do
     handler = Map.get(@fn_map, opts.rule)
 
-    result = handler.(%{value: opts.value, arg: opts.arg, input: opts.input})
+    result = handler.(%Arg{value: opts.value, arg: opts.arg, input: opts.input})
 
     path = if opts.valueName != nil, do: [opts.valueName], else: []
     path = opts.path ++ path
 
     case result do
       {:error, reason} ->
-        {opts.value, [%{path: path, rule: opts.rule, message: reason}]}
+        {opts.value, [%Error{path: path, rule: opts.rule, message: reason}]}
 
       {:ok, value} ->
         {value, []}

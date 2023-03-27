@@ -1,13 +1,15 @@
 defmodule Validate.Required do
+  import Validate.Validator
+
   def validate(%{value: value, arg: true}) do
     case validate_required(value) do
-      :error -> {:error, "is required"}
-      :ok -> {:ok, value}
+      :error -> error("is required")
+      :ok -> success(value)
     end
   end
 
   def validate(%{value: value, arg: false}) do
-    {:ok, value}
+    success(value)
   end
 
   defp validate_required([]), do: :error
