@@ -10,6 +10,7 @@ defmodule Validate do
     max: &Validate.Max.validate/1,
     min: &Validate.Min.validate/1,
     not_in: &Validate.NotIn.validate/1,
+    nullable: &Validate.Nullable.validate/1,
     required: &Validate.Required.validate/1,
     size: &Validate.Size.validate/1,
     starts_with: &Validate.StartsWith.validate/1,
@@ -79,10 +80,6 @@ defmodule Validate do
               })
 
             {code, data, allErrors ++ errors}
-            # cond do
-            #   code in [:error, :halt] -> {code, data, allErrors ++ errors}
-            #   true -> {code, data, allErrors}
-            # end
         end
       end)
 
@@ -139,6 +136,9 @@ defmodule Validate do
     case result do
       {code, reason} when code in [:error, :halt] ->
         {code, opts.value, [%Error{path: path, rule: opts.rule, message: reason}]}
+
+      {:halt} ->
+        {:ok, opts.value, []}
 
       {:ok, value} ->
         {:ok, value, []}
