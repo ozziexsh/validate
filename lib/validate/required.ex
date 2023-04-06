@@ -3,7 +3,7 @@ defmodule Validate.Required do
 
   def validate(%{value: value, arg: true}) do
     case validate_required(value) do
-      :error -> error("is required")
+      :error -> halt("is required")
       :ok -> success(value)
     end
   end

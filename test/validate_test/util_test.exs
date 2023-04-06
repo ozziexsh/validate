@@ -30,7 +30,7 @@ defmodule ValidateTest.UtilTest do
       assert Map.has_key?(error_map, "email")
       assert Map.has_key?(error_map, "colors.0")
       assert is_list(Map.get(error_map, "colors.0"))
-      assert Enum.count(Map.get(error_map, "colors.0")) == 2
+      assert Enum.count(Map.get(error_map, "colors.0")) == 1
       assert Map.has_key?(error_map, "colors.2")
       assert Map.has_key?(error_map, "address.city")
     end

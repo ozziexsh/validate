@@ -7,7 +7,7 @@ defmodule Validate.Type do
     received = Util.get_type(value)
 
     case validate_type(value, arg) do
-      :error -> error("expected #{expected} received #{received}")
+      :error -> halt("expected #{expected} received #{received}")
       :ok -> success(value)
     end
   end

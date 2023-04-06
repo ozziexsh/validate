@@ -9,5 +9,7 @@ defmodule Validate.Validator do
 
   def error(message), do: {:error, message}
 
+  def halt(message), do: {:halt, message}
+
   def success(value), do: {:ok, value}
 end

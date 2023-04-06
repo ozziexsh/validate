@@ -10,7 +10,7 @@ defmodule ValidateTest.RequiredTest do
     arg: true
   }
 
-  @error {:error, "is required"}
+  @error {:halt, "is required"}
 
   describe "strings" do
     test "it returns error when empty" do
