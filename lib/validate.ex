@@ -109,13 +109,16 @@ defmodule Validate do
   defp run_validator_rule(%{rule: :map, arg: rulesForMap} = opts) do
     rulesForMap
     |> Enum.reduce({:ok, %{}, []}, fn {subKey, subRules}, {_, filteredValue, allErrors} ->
+      path = if opts.valueName != nil, do: [opts.valueName], else: []
+      path = opts.path ++ path
+
       {data, errors} =
         validate_single_input(%{
           value: Map.get(opts.value, subKey),
           valueName: subKey,
           rules: subRules,
           input: opts.input,
-          path: opts.path ++ [opts.valueName]
+          path: path
         })
 
       cond do

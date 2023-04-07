@@ -1,268 +1,321 @@
 # Validate
 
-Validate incoming requests in an easy to reason-about way using Elixir.
-
-🚨 **Validate is an active WIP. Building mostly for fun/to satisfy my own needs on a project** 🚨
+Validate data in elixir. Focused on validating incoming http request data but works with all elixir data types.
 
 Coming from languages like PHP and Node.js it can be difficult to reason about validating your requests using Ecto. This provides a simple data validation layer that aims to be extensible to allow for custom validation logic provided by the user.
 
-## Todo
+Inspired by Laravel's validator.
 
-- ~~Give option to provide atoms in rule lists for simple validators to get rid of needing to import each one~~
-- Test usage with mixed keys (`:atoms` and `"strings"`)
-- Add more out-of-the-box validators
-- ~~Provide documentation on custom validators~~
-- i18n support for errors
-- Support more input params than just maps
-- Make `:skip` api more clear
-- Turn errors into list
+## Features
+
+- [x] Simple (raw string, bool, etc), nested maps, and list validation
+- [x] 10 built in validators (more coming soon)
+- [x] Custom validators
+- [x] Return validated keys only
+- [ ] i18n
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Simple Validation](#simple-validation)
+  - [Map Validation](#map-validation)
+  - [Nested Rules](#nested-rules)
+- [Errors](#errors)
+  - [Formatting Errors](#formatting-errors)
+- [Built in Validators](#built-in-validators)
 
 ## Installation
 
-The package can be installed
-by adding `validate` to your list of dependencies in `mix.exs`:
+Add Validate to your mix.exs dependencies:
 
 ```elixir
-def deps do
+defp deps do
   [
-    {:validate, "~> 0.2.4"}
+    {:validate, "~> 1.0"}
   ]
 end
 ```
 
 ## Usage
 
+The basic usage looks like:
+
 ```elixir
-defmodule MyApp.UserController do
-  import Validate
+# data is the validatede input
+{:ok, data} = Validate.validate(input, rules)
 
-  def create(conn, params) do
-    case validate(params, create_rules) do
-      {:ok, data} ->
-        # ... create user
-        # `data` is filtered to only the keys provided in `rules`
-
-      {:error, errors} ->
-        # errors is a map that matches the rules provided
-        # in this case: %{ "username" => "required" }
-        json(conn, errors)
-    end
-  end
-
-  defp create_rules, do: %{
-    "username": [:required],
-  }
-end
+# errors is an array of %Validate.Validator.Error{}
+{:error, errors} = Validate.validate(input, rules)
 ```
 
-## Custom Validators
+### Simple Validation
 
-Writing your own validator is as simple as writing a function that returns one of four results:
+If you are validating a simple/flat data type (like string, boolean, number), you can simply pass the rules as a keyword list:
 
 ```elixir
-# valid, pass on value and continue with rest of validators
-{:ok, value}
-# invalid, provide reason
-{:error, message}
-
-# (WIP Prevent further validation)
-# invalid, provide reason and do not continue with rest of validators
-{:skip, message}
-# valid, but do not continue
-{:skip}
+{:ok, data} = Validate.validate("jane", required: true, type: :string)
 ```
 
-Let's build a validator that expects a string and ensures that it is one of `n` values.
+### Map Validation
+
+If you are validating a map, such as the body of an incoming `post` request, you must pass a map of rules where the keys match the keys that you are validating. Note: the rule keys **must be the same type** as the data keys. If your data keys are strings, use string keys for the rules. If your data keys are atoms, use atoms for the rules. You can mix and match key types in the same map, as long as the keys in the rules mirror the keys in the data.
 
 ```elixir
-defmodule MyApp.Allowed do
-  def allowed(ok_values, value) when value in ok_values, do: {:ok, value}
-  def allowed(_ok_values, _value), do: {:error, "value not allowed"}
-end
-```
-
-Now we can simply use it like so:
-
-```elixir
-import Validate
-import MyApp.Allowed
 input = %{
-  "plan" => "elite"
+  "email" => "test@example.com",
+  "age" => 32
 }
+
 rules = %{
-  "plan" => [:required, :string, &allowed(["basic", "pro"], &1)]
+  "email" => [required: true, type: :string],
+  "age" => [required: true, type: :number]
 }
-validate(input, rules)
-# {:error, %{"plan" => "value not allowed"}}
+
+{:ok, data} = Validate.validate(input, rules)
 ```
 
-## Validators
-
-### Required
-
-Validates input is not:
-
-- `undefined`
-- `null`
-- `""`
-- `[]`
-- `{}`
+Important: The data returned from nested validations will always only be the keys specified in the rules. Any keys not specified in the rules are thrown away:
 
 ```elixir
-import Validate
-data = %{ "username" => "" }
+input = %{
+  "url" => "https://google.com",
+  "friends" => [
+    %{ "name" => "Jane", "email" => "jane@example.com" },
+  ],
+  "age" => 28
+}
+
 rules = %{
-  "username" => [
-    :required
-  ]
-}
-validate(data, rules)
-# {:error, %{ "username" => "required" }}
-```
-
-### Optional
-
-Does not continue with the rest of the validators if the value is not present or nil
-
-- `undefined`
-- `null`
-
-```elixir
-import Validate
-data = %{}
-rules = %{
-  "username" => [
-    :optional,
-    :string,
-  ]
-}
-# value not present, so it's ok
-validate(data, rules)
-# {:ok, %{}}
-```
-
-```elixir
-import Validate
-data = %{ "username" => 123 }
-rules = %{
-  "username" => [
-    :optional,
-    :string,
-  ]
-}
-# value present, so it continues on to next validators
-validate(data, rules)
-# {:error, %{"username" => "not a string"}}
-```
-
-### String
-
-Validates input is a string
-
-```elixir
-import Validate
-data = %{
-  "username" => 123
-}
-rules = %{
-  "username" => [
-    :string,
-  ]
-}
-validate(data, rules)
-# {:error, %{"username" => "not a string"}}
-```
-
-### Number
-
-Validates input is a number (float or int)
-
-```elixir
-import Validate
-data = %{
-  "balance" => "very low"
-}
-rules = %{
-  "balance" => [
-    :number,
-  ]
-}
-validate(data, rules)
-# {:error, %{"balance" => "not a number"}}
-```
-
-### List
-
-Validates input is a list (array)
-
-```elixir
-import Validate
-data = %{
-  "cities" => "saskatoon"
-}
-rules = %{
-  "cities" => [
-    :list,
-  ]
-}
-validate(data, rules)
-# {:error, %{"balance" => "not a list"}}
-```
-
-### Map
-
-Validates input is a map (object). Can be used to specify nested validations.
-
-Simple use case:
-
-```elixir
-import Validate
-data = %{
-  "user" => 123
-}
-rules = %{
-  "user" => [:map]
-}
-validate(data, rules)
-# {:error, %{"user" => "not a map"}}
-```
-
-Nested use case:
-
-```elixir
-import Validate
-data = %{
-  "user" => %{
-    "username" => "nehero",
-    "password" => "",
-    "team" => %{
-      "name" => ""
-    }
-  }
-}
-rules = %{
-  "user" => [
-    :required,
+  "url" => [required: true, type: :string],
+  "friends" => [
     map: %{
-      "username" => [:required, :string],
-      "password" => [:required, :string],
-      "team" => [map: %{
-        "name" => [:required, :string]
-      }]
+      "name" => [required: true, type: :string]
     }
   ]
 }
-validate(data, rules)
-#{
-#  :error,
-#  %{
-#    "user" => %{
-#      "password" => "required",
-#      "team" => %{
-#        "name" => "required"
-#      }
-#    }
-#  }
-#}
-"""
+
+{:ok, data} = Validate.validate(input, rules)
+
+data == %{
+  "url" => "https://google.com",
+  "friends" => [
+    %{ "name" => "Jane"}
+  ]
+}
+```
+
+### Nested Rules
+
+You can also perform complex validation such as nested lists and maps:
+
+```elixir
+input = %{
+  "name" => "Jane Doe",
+  "colors" => ["red", "green"],
+  "address" => %{
+    "line1" => "123 Fake St",
+    "city" => "Saskatoon"
+  },
+  "friends" => [
+    %{"name" => "John", "email" => "john@example.com"},
+    %{"name" => "Michelle", "email" => "michelle@example.com"}
+  ]
+}
+
+rules = %{
+  "name" => [required: true, type: :string],
+  "colors" => [
+    required: true,
+    type: :list,
+    list: [required: true, type: :string, in: ~w[blue orange red green purple]]
+  ],
+  "address" => [
+    required: true,
+    type: :map,
+    map: %{
+      "line1" => [required: true, type: :string],
+      "city" => [required: true, type: :string],
+    }
+  ],
+  "friends" => [
+    required: true,
+    type: :list,
+    list: [
+      required: true,
+      type: :map,
+      map: %{
+        "name" => [required: true, type: :string],
+        "email" => [required: true, type: :string]
+      }
+    ]
+  ]
+}
+
+{:ok, data} = Validate.validate(input, rules)
+```
+
+## Errors
+
+The error array returned contains `%Validate.Validator.Error{}` structs.
+
+When performing simple validations, `path` will be an empty array. When validating maps, `path` will be an array of keys representing the depth to get to the data value. For lists, the numeric index is used for the specific position of the error in the list.
+
+```elixir
+[
+  %Validate.Validator.Error{
+    path: ["name"],
+    message: "is required",
+    rule: :required
+  },
+  %Validate.Validator.Error{
+    path: ["colors", 2],
+    message: "must be a string",
+    rule: :type
+  },
+  %Validate.Validator.Error{
+    path: ["address", "line1"],
+    message: "is required",
+    rule: :required
+  },
+]
+```
+
+### Formatting Errors
+
+Sometimes it is easier to show errors to the user by name instead of looping through the array, so a helper is provided to make this easy:
+
+```elixir
+# assuming the error array from the above example
+formatted = Validate.Util.errors_to_map(errors)
+
+formatted == %{
+  "name" => ["is required"],
+  "colors.2" => ["must be a string"],
+  "address.line1" => ["is required"]
+}
+```
+
+## Built in Validators
+
+### ends_with
+
+The field under validation must end with the specified string.
+
+```elixir
+Validate.validate("exciting!", type: :string, ends_with: "!")
+```
+
+### in
+
+The field under validation must be in the provided array.
+
+```elixir
+Validate.validate("blue", type: :string, in: ["red", "green", "blue"])
+```
+
+### list
+
+The field under validation must be a list, and you must specify rules that should be ran for each item in the list.
+
+```elixir
+Validate.validate([1, 2, 3], list: [required: true, type: :number])
+```
+
+### map
+
+The field under validation must be a map, and you must specify validation rules for the keys of the map.
+
+```elixir
+Validate.validate(%{"name" => "Jane"}, map: %{"name" => [required: true, type: :string]})
+```
+
+### max
+
+The field under validation must be less than or equal to the provided number.
+
+```elixir
+Validate.validate(10, type: :number, max: 15)
+```
+
+### min
+
+The field under validation must be greater than or equal to the provided number.
+
+```elixir
+Validate.validate(10, type: :number, min: 1)
+```
+
+### not_in
+
+The field under validation must not be in the provided array.
+
+```elixir
+Validate.validate("black", type: :string, not_in: ["red", "green", "blue"])
+```
+
+### nullable
+
+The field under validation can be `nil`. If the value is `nil`, it does not process any more rules for the field.
+
+```elixir
+# type & min do not run here
+Validate.validate(nil, nullable: true, type: :string, min: 10)
+```
+
+### required
+
+The field under validation must not be empty. 
+
+Empty values are `nil`, `""`, `%{}`, `[]`, `{}`.
+
+```elixir
+Validate.validate("red", required: true)
+```
+
+If set to `required: false`, empty values will be accepted. 
+
+```elixir
+Validate.validate("", required: false)
+```
+
+This can be used as a "required if" by evaluating a statement to a boolean:
+
+```elixir
+Validate.validate("red", required: check_if_color_is_needed())
+```
+
+### size
+
+The field under validation must have a size matching the given value.
+
+- Numbers are compared directly to the value
+- String sizes are calculated with `String.length/1`
+- List and map sizes are calculated with `Enum.count/1`
+- Tuple sizes are calculated with `tuple_size/1`
+
+```elixir
+Validate.validate("123", size: 3)
+Validate.validate(10, size: 10)
+Validate.validate([1, 2, 3], size: 3)
+Validate.validate(%{ ok: true }, size: 1)
+Validate.validate({1, 2}, size: 2)
+```
+
+### starts_with
+
+The field under validation must start with the given value.
+
+```elixir
+Validate.validate("user_1234", type: :string, starts_with: "user_")
+```
+
+### type
+
+The field under validation must be of the specified type.
+
+Valid types are: `atom`, `binary`, `boolean`, `float`, `function`, `list`, `map`, `number`, `string`, `tuple`.
+
+```elixir
+Validate.validate(:user, type: :atom)
 ```
