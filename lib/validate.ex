@@ -2,74 +2,158 @@ defmodule Validate do
   @moduledoc """
   Validate, validate incoming requests in an easy to reason-about way.
   """
+  alias Validate.Validator.{Error, Arg}
 
   @fn_map %{
-    :required => &Validate.Required.required/1,
-    :optional => &Validate.Optional.optional/1,
-    :string => &Validate.String.string/1,
-    :number => &Validate.Number.number/1,
-    :list => &Validate.List.list/1,
-    :map => &Validate.Map.map/1
+    ends_with: &Validate.EndsWith.validate/1,
+    in: &Validate.In.validate/1,
+    max: &Validate.Max.validate/1,
+    min: &Validate.Min.validate/1,
+    not_in: &Validate.NotIn.validate/1,
+    nullable: &Validate.Nullable.validate/1,
+    required: &Validate.Required.validate/1,
+    size: &Validate.Size.validate/1,
+    starts_with: &Validate.StartsWith.validate/1,
+    type: &Validate.Type.validate/1
   }
 
   @doc """
-  Validate.validate/2, the entry point for validation.
-  Takes in a struct. Returns either:
-  `{:ok, data}` or `{:error, errors}`
-  Data returned is filtered out to only keys provided in rules
+  Validates an input against a given list of rules
+
+    iex> {:ok, data} = Validate.validate("Jane", required: true, type: :string)
+
+    iex> {:error, errors} = Validate.validate([], required: true, type: :list)
+
+    iex> {:ok, data} = Validate.validate(%{"name" => "Jane"}, %{"name" => [required: true, type: :string]})
   """
-  def validate(params, rules) do
-    {data, errors} =
-      Enum.reduce(rules, {%{}, %{}}, fn {key, item_rules}, {data, errors} ->
-        value = Map.get(params, key)
-        res = Enum.reduce(item_rules, {:ok, nil}, &run_validator(value, &1, &2))
+  def validate(input, rules) when is_list(rules) do
+    {input, errors} =
+      validate_single_input(%{
+        value: input,
+        valueName: nil,
+        rules: rules,
+        input: input,
+        path: []
+      })
 
-        case res do
-          {:ok, x} ->
-            {Map.put(data, key, x), errors}
+    cond do
+      Enum.count(errors) > 0 -> {:error, errors}
+      true -> {:ok, input}
+    end
+  end
 
-          {:error, msg} ->
-            {data, Map.put(errors, key, msg)}
+  def validate(input, rules) do
+    {input, errors} =
+      Enum.reduce(rules, {%{}, []}, fn {inputName, ruleList}, {filteredInput, finalErrors} ->
+        inputValue = Map.get(input, inputName)
 
-          {:skip, msg} ->
-            {data, Map.put(errors, key, msg)}
+        {inputValue, inputErrors} =
+          validate_single_input(%{
+            value: inputValue,
+            valueName: inputName,
+            rules: ruleList,
+            input: input,
+            path: []
+          })
 
-          {:skip} ->
-            {data, errors}
+        cond do
+          Enum.count(inputErrors) > 0 -> {filteredInput, finalErrors ++ inputErrors}
+          true -> {Map.put(filteredInput, inputName, inputValue), finalErrors}
         end
       end)
 
-    result(data, errors)
-  end
-
-  # When a validator says skip we want to forward along the skip param
-  # so that the rest of the validators dont fire
-  defp run_validator(_value, _validator, {:skip} = acc), do: acc
-  
-  defp run_validator(_value, _validator, {:skip, _msg} = acc), do: acc
-
-  # Handles `:atom` keys in rule lists
-  defp run_validator(value, validator, _acc) when is_atom(validator) do
-    if Map.has_key?(@fn_map, validator) do
-      Map.get(@fn_map, validator).(value)
-    else
-      {:error, "invalid validator"}
+    cond do
+      Enum.count(errors) > 0 -> {:error, errors}
+      true -> {:ok, input}
     end
   end
 
-  # When a `[map: %{}]` is passed in a rule list, we want to just call
-  # the same `validate` function on the map so it gets handled the same
-  defp run_validator(value, {:map, nested_rules}, _acc) do
-    if is_map(value) and is_map(nested_rules) do
-      validate(value, nested_rules)
-    else
-      Map.get(@fn_map, :map).(value)
-    end
+  defp validate_single_input(opts) do
+    {_, value, errors} =
+      Enum.reduce(opts.rules, {:ok, opts.value, []}, fn {ruleName, ruleArg},
+                                                        {continue, value, allErrors} ->
+        case continue do
+          :halt ->
+            {continue, value, allErrors}
+
+          _ ->
+            {code, data, errors} =
+              run_validator_rule(%{
+                rule: ruleName,
+                arg: ruleArg,
+                value: value,
+                valueName: opts.valueName,
+                rules: opts.rules,
+                input: opts.input,
+                path: opts.path
+              })
+
+            {code, data, allErrors ++ errors}
+        end
+      end)
+
+    {value, errors}
   end
 
-  # Handles custom validators passed via function reference
-  defp run_validator(value, validator, _acc), do: validator.(value)
+  defp run_validator_rule(%{rule: :list, arg: rulesForList} = opts) do
+    opts.value
+    |> Enum.with_index()
+    |> Enum.reduce({:ok, [], []}, fn {item, i}, {_, value, allErrors} ->
+      {data, errors} =
+        validate_single_input(%{
+          value: item,
+          valueName: i,
+          rules: rulesForList,
+          input: opts.input,
+          path: opts.path ++ [opts.valueName]
+        })
 
-  defp result(data, errors) when map_size(errors) == 0, do: {:ok, data}
-  defp result(_data, errors), do: {:error, errors}
+      cond do
+        Enum.count(errors) > 0 -> {:error, value, allErrors ++ errors}
+        true -> {:ok, value ++ [data], allErrors}
+      end
+    end)
+  end
+
+  defp run_validator_rule(%{rule: :map, arg: rulesForMap} = opts) do
+    rulesForMap
+    |> Enum.reduce({:ok, %{}, []}, fn {subKey, subRules}, {_, filteredValue, allErrors} ->
+      path = if opts.valueName != nil, do: [opts.valueName], else: []
+      path = opts.path ++ path
+
+      {data, errors} =
+        validate_single_input(%{
+          value: Map.get(opts.value, subKey),
+          valueName: subKey,
+          rules: subRules,
+          input: opts.input,
+          path: path
+        })
+
+      cond do
+        Enum.count(errors) > 0 -> {:error, filteredValue, allErrors ++ errors}
+        true -> {:ok, Map.put(filteredValue, subKey, data), allErrors}
+      end
+    end)
+  end
+
+  defp run_validator_rule(opts) do
+    handler = if opts.rule == :custom, do: opts.arg, else: Map.get(@fn_map, opts.rule)
+
+    result = handler.(%Arg{value: opts.value, arg: opts.arg, input: opts.input})
+
+    path = if opts.valueName != nil, do: [opts.valueName], else: []
+    path = opts.path ++ path
+
+    case result do
+      {code, reason} when code in [:error, :halt] ->
+        {code, opts.value, [%Error{path: path, rule: opts.rule, message: reason}]}
+
+      {:halt} ->
+        {:ok, opts.value, []}
+
+      {:ok, value} ->
+        {:ok, value, []}
+    end
+  end
 end

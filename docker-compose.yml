@@ -1,0 +1,8 @@
+version: "3"
+services:
+  elixir:
+    image: "elixir:latest"
+    working_dir: "/usr/src/app"
+    volumes:
+      - "./:/usr/src/app"
+    command: "sleep infinity"
