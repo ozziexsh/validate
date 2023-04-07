@@ -228,6 +228,25 @@ The field under validation must be a map, and you must specify validation rules 
 
 ```elixir
 Validate.validate(%{"name" => "Jane"}, map: %{"name" => [required: true, type: :string]})
+
+# you can also just pass a map directly as the second argument when the input is a map
+Validate.validate(%{"name" => "Jane"}, %{"name" => [required: true, type: :string]})
+
+# nesting also works
+Validate.validate(%{
+  "address" => %{
+    "line1" => "123 Fake st"
+  }
+}, %{
+  "address" => [
+    map: %{
+      "line1" => [
+        required: true,
+        type: :string
+      ]
+    }
+  ]
+})
 ```
 
 ### max
