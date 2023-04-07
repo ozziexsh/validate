@@ -7,7 +7,7 @@ defmodule Validate.MixProject do
       name: "Validate",
       description: description(),
       package: package(),
-      version: "0.2.4",
+      version: "1.0.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -29,13 +29,13 @@ defmodule Validate.MixProject do
   end
 
   defp description() do
-    "Validate incoming requests in an easy to reason-about way"
+    "Validate any data"
   end
 
   defp package() do
     [
-      licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/nehero/validate"}
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/ozziexsh/validate"}
     ]
   end
 end

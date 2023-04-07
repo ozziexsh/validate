@@ -6,6 +6,18 @@ Coming from languages like PHP and Node.js it can be difficult to reason about v
 
 Inspired by Laravel's validator.
 
+## Installation
+
+Add Validate to your mix.exs dependencies:
+
+```elixir
+defp deps do
+  [
+    {:validate, "~> 1.0"}
+  ]
+end
+```
+
 ## Features
 
 - [x] Simple (raw string, bool, etc), nested maps, and list validation
@@ -25,24 +37,12 @@ Inspired by Laravel's validator.
   - [Formatting Errors](#formatting-errors)
 - [Built in Validators](#built-in-validators)
 
-## Installation
-
-Add Validate to your mix.exs dependencies:
-
-```elixir
-defp deps do
-  [
-    {:validate, "~> 1.0"}
-  ]
-end
-```
-
 ## Usage
 
 The basic usage looks like:
 
 ```elixir
-# data is the validatede input
+# data is the validated input
 {:ok, data} = Validate.validate(input, rules)
 
 # errors is an array of %Validate.Validator.Error{}
