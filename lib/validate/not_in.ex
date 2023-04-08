@@ -1,4 +1,6 @@
 defmodule Validate.NotIn do
+  @moduledoc false
+
   import Validate.Validator
 
   def validate(%{value: value, arg: lookup}) do

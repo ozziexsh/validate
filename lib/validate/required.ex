@@ -1,4 +1,6 @@
 defmodule Validate.Required do
+  @moduledoc false
+
   import Validate.Validator
 
   def validate(%{value: value, arg: true}) do

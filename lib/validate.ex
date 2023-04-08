@@ -20,11 +20,11 @@ defmodule Validate do
   @doc """
   Validates an input against a given list of rules
 
-    iex> {:ok, data} = Validate.validate("Jane", required: true, type: :string)
+  ## Examples
 
-    iex> {:error, errors} = Validate.validate([], required: true, type: :list)
-
-    iex> {:ok, data} = Validate.validate(%{"name" => "Jane"}, %{"name" => [required: true, type: :string]})
+      iex> {:ok, _data} = Validate.validate("Jane", required: true, type: :string)
+      iex> {:error, _errors} = Validate.validate([], required: true, type: :list)
+      iex> {:ok, _data} = Validate.validate(%{"name" => "Jane"}, %{"name" => [required: true, type: :string]})
   """
   def validate(input, rules) when is_list(rules) do
     {input, errors} =

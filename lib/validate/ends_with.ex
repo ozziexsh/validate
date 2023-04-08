@@ -1,4 +1,6 @@
 defmodule Validate.EndsWith do
+  @moduledoc false
+
   import Validate.Validator
 
   def validate(%{value: value, arg: str}) do

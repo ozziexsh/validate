@@ -1,4 +1,6 @@
 defmodule Validate.Nullable do
+  @moduledoc false
+
   import Validate.Validator
 
   def validate(%{value: nil, arg: true}), do: halt()

@@ -1,4 +1,6 @@
 defmodule Validate.Max do
+  @moduledoc false
+
   alias Validate.Util
   import Validate.Validator
 

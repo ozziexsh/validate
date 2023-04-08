@@ -1,4 +1,6 @@
 defmodule Validate.Type do
+  @moduledoc false
+
   alias Validate.Util
   import Validate.Validator
 

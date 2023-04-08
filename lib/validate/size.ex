@@ -1,4 +1,6 @@
 defmodule Validate.Size do
+  @moduledoc false
+
   alias Validate.Util
   import Validate.Validator
 
