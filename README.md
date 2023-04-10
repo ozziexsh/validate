@@ -24,6 +24,7 @@ end
 - [x] Built in validation rules
 - [x] Custom validation rules
 - [x] Return validated keys only
+- [x] Plug
 - [ ] i18n
 
 ## Table of Contents
@@ -257,6 +258,76 @@ rules = %{
     custom: MyApp.EmailExists.validate(),
   ]
 }
+```
+
+## Plug
+
+You can use Validate as a plug to simplify your controllers by performing validation and authorization outside of your controller action. 
+
+First you need to create a file in your project for the plug. This is required so that you can control what happens when different events occur. Some applications may wish to return JSON, while others want to redirect to a route. Providing this as a macro in your own application gives you the flexibility to handle this how you please.
+
+For this example, we'll create a file called `my_app_web/plugs/form_request.ex`
+
+```elixir
+defmodule MyAppWeb.Plugs.FormRequest do
+  use Validate.Plugs.FormRequest,
+    validate_success: :validate_success,
+    validate_error: :validate_error,
+    auth_error: :auth_error
+
+  import Plug.Conn
+
+  # called when validation passess
+  # use this to make the validated data available to your controller
+  def validate_success(conn, data) do
+    conn |> assign(conn, :validated, data)
+  end
+
+  def validate_error(conn, errors) do
+    conn |> put_status(422) |> halt()
+  end
+
+  def auth_error(conn) do
+    conn |> put_status(401) |> halt()
+  end
+end
+```
+
+Now we can create a module that will handle the request. This module can exist anywhere but needs to implement at least a `rules/1` function and optionally an `authorize/1` function. `authorize/1` will be called first if it is present, and only if it returns a truthy value will it continue to validate the input, if it returns a falsy value we will call the `auth_error` function in our plug from earlier. `rules/1` should return a map of rules that will be validated against `conn.params`. 
+
+Let's pretend we're making a form to create a team in our application. We might put this in `my_app_web/requests/create_team_request.ex`.
+
+```elixir
+defmodule MyAppWeb.Requests.CreateTeamRequest do
+  # can only create a team if we do not already have a team
+  def authorize(conn) do
+    conn.assigns.user && !conn.assigns.team
+  end
+
+  def rules(_conn) do
+    %{
+      "name" => [required: true, type: :string, max: 80],
+      "plan" => [required: true, type: :string, in: ["free", "pro"]],
+      # ...
+    }
+  end
+end
+```
+
+Now we're ready to use this in our controller. Let's assume we have a controller like `my_app_web/controllers/team_controller.ex`.
+
+```elixir
+defmodule MyAppWeb.Controllers.TeamController do
+  use MyAppWeb, :controller
+
+  plug MyAppWeb.Plugs.FormRequest, MyAppWeb.Requests.CreateTeamRequest when action in [:create]
+
+  def create(conn, params) do
+    # now we can operate in here knowing that
+    # our request is authorized and the validated data
+    # is in conn.assigns.validated
+  end
+end
 ```
 
 ## Built in Validation Rules
