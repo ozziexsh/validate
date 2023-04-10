@@ -4,18 +4,7 @@ defmodule Validate do
   """
   alias Validate.Validator.{Error, Arg}
 
-  @fn_map %{
-    ends_with: &Validate.EndsWith.validate/1,
-    in: &Validate.In.validate/1,
-    max: &Validate.Max.validate/1,
-    min: &Validate.Min.validate/1,
-    not_in: &Validate.NotIn.validate/1,
-    nullable: &Validate.Nullable.validate/1,
-    required: &Validate.Required.validate/1,
-    size: &Validate.Size.validate/1,
-    starts_with: &Validate.StartsWith.validate/1,
-    type: &Validate.Type.validate/1
-  }
+  @fns ~w[between digits_between digits ends_with in lowercase max_digits max min_digits min not_ends_with not_in not_regex not_starts_with nullable regex required size starts_with type uppercase]
 
   @doc """
   Validates an input against a given list of rules
@@ -138,7 +127,7 @@ defmodule Validate do
   end
 
   defp run_validator_rule(opts) do
-    handler = if opts.rule == :custom, do: opts.arg, else: Map.get(@fn_map, opts.rule)
+    handler = get_handler(opts)
 
     result = handler.(%Arg{value: opts.value, arg: opts.arg, input: opts.input})
 
@@ -154,6 +143,20 @@ defmodule Validate do
 
       {:ok, value} ->
         {:ok, value, []}
+    end
+  end
+
+  defp get_handler(%{rule: :custom, arg: arg}), do: arg
+
+  defp get_handler(%{rule: rule}) do
+    rule_str = Atom.to_string(rule)
+
+    if rule_str in @fns do
+      module = "Elixir.Validate.#{Macro.camelize(rule_str)}" |> String.to_existing_atom()
+
+      &module.validate/1
+    else
+      raise "#{rule} validator does not exist"
     end
   end
 end

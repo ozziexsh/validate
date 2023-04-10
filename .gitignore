@@ -23,3 +23,5 @@ erl_crash.dump
 validate-*.tar
 
 /.elixir_ls/
+
+.DS_Store

@@ -21,8 +21,8 @@ end
 ## Features
 
 - [x] Simple (raw string, bool, etc), nested maps, and list validation
-- [x] 10 built in validators (more coming soon)
-- [x] Custom validators
+- [x] Built in validation rules
+- [x] Custom validation rules
 - [x] Return validated keys only
 - [ ] i18n
 
@@ -35,7 +35,8 @@ end
   - [Nested Rules](#nested-rules)
 - [Errors](#errors)
   - [Formatting Errors](#formatting-errors)
-- [Built in Validators](#built-in-validators)
+- [Custom Validation Rules](#custom-validation-rules)
+- [Built in Validation Rules](#built-in-validation-rules)
 
 ## Usage
 
@@ -196,7 +197,117 @@ formatted == %{
 }
 ```
 
-## Built in Validators
+## Custom Validation Rules
+
+You can write your own validators by using the `custom:` rule. You can write these as modules or as inline functions.
+
+Validation rules must return one of four possible outcomes:
+
+- `Validate.Validator.success(value)` - Return this when validation passes. You must pass the value back as the first arg. This gives you the opportunity to transform the value if you wish.
+- `Validate.Validator.error(message)` - Return this when validation fails. You must pass a message back to the user to let them know why it failed. 
+- `Validate.Validator.halt(message)` - Return this when validation fails AND you want to prevent any further validation from running on this specific input.
+- `Validate.Validator.halt()` - Return this when validation succeeds BUT you do not want any further validations to happen on this specific input.
+
+For example, we could write a custom rule to see if an email already exists in our database:
+
+```elixir
+input = %{
+  "email" => "hello@example.com"
+}
+
+rules = %{
+  "email" => [
+    required: true,
+    type: :string,
+    custom: fn %{ value: value } ->
+      if MyApp.Accounts.email_exists?(value) do
+        Validate.Validator.error("email is already taken")
+      else
+        Validate.Validator.success(value)
+      end
+    end
+  ]
+}
+```
+
+If you'd like to have the rule be reusable, you could move it into a module. For further readability, you could also make it a higher-order function to prevent passing function references like `&MyApp.MyRule.validate/1`:
+
+```elixir
+defmodule MyApp.EmailExists do
+  def validate() do
+    fn %{ value: value } ->
+      if MyApp.Accounts.email_exists?(value) do
+        Validate.Validator.error("email is already taken")
+      else
+        Validate.Validator.success(value)
+      end
+    end
+  end
+end
+
+
+input = %{
+  "email" => "hello@example.com"
+}
+
+rules = %{
+  "email" => [
+    required: true,
+    type: :string,
+    custom: MyApp.EmailExists.validate(),
+  ]
+}
+```
+
+## Built in Validation Rules
+
+Examples show input that would successfully validate. Some rules require a type to be specified first in order to properly validate.
+
+- [between](#between)
+- [digits_between](#digits_between)
+- [digits](#digits)
+- [ends_with](#ends_with)
+- [in](#in)
+- [lowercase](#lowercase)
+- [max_digits](#max_digits)
+- [max](#max)
+- [min_digits](#min_digits)
+- [min](#min)
+- [not_ends_with](#not_ends_with)
+- [not_in](#not_in)
+- [not_regex](#not_regex)
+- [not_starts_with](#not_starts_with)
+- [nullable](#nullable)
+- [regex](#regex)
+- [required](#required)
+- [size](#size)
+- [starts_with](#starts_with)
+- [type](#type)
+- [uppercase](#uppercase)
+
+### between
+
+The field under validation must be between the two numbers (inclusive).
+
+```elixir
+Validate.validate(10, type: :number, between: {1, 20})
+```
+
+### digits_between
+
+The field under validation must have a number of digits between the two numbers (inclusive).
+
+```elixir
+Validate.validate(100, type: :integer, digits_between: {2, 4})
+```
+
+### digits
+
+The field under validation must have the exact amount of digits.
+
+```elixir
+Validate.validate(100, type: :integer, digits: 3)
+```
 
 ### ends_with
 
@@ -212,6 +323,20 @@ The field under validation must be in the provided array.
 
 ```elixir
 Validate.validate("blue", type: :string, in: ["red", "green", "blue"])
+```
+
+### lowercase
+
+The field under validation must be all lowercase.
+
+```elixir
+Validate.validate("hello", type: :string, lowercase: true)
+```
+
+The field under validation must not be all lowercase.
+
+```elixir
+Validate.validate("Hello", type: :string, lowercase: false)
 ```
 
 ### list
@@ -249,12 +374,28 @@ Validate.validate(%{
 })
 ```
 
+### max_digits
+
+The field under validation must be at most the provided number of digits.
+
+```elixir
+Validate.validate(10, type: :integer, max_digits: 2)
+```
+
 ### max
 
 The field under validation must be less than or equal to the provided number.
 
 ```elixir
 Validate.validate(10, type: :number, max: 15)
+```
+
+### min_digits
+
+The field under validation must be at least the provided number of digits.
+
+```elixir
+Validate.validate(10, type: :integer, min_digits: 2)
 ```
 
 ### min
@@ -265,12 +406,36 @@ The field under validation must be greater than or equal to the provided number.
 Validate.validate(10, type: :number, min: 1)
 ```
 
+### not_ends_with 
+
+The field under validation must not end with the provided string.
+
+```elixir
+Validate.validate("exciting", type: :string, not_ends_with: "!")
+```
+
 ### not_in
 
 The field under validation must not be in the provided array.
 
 ```elixir
 Validate.validate("black", type: :string, not_in: ["red", "green", "blue"])
+```
+
+### not_regex 
+
+The field under validation must not match the provided pattern.
+
+```elixir
+Validate.validate("abcd", type: :string, not_regex: ~r/[0-9]/)
+```
+
+### not_starts_with 
+
+The field under validation must not start with the provided string.
+
+```elixir
+Validate.validate("company_123", type: :string, not_starts_with: "user_")
 ```
 
 ### nullable
@@ -280,6 +445,14 @@ The field under validation can be `nil`. If the value is `nil`, it does not proc
 ```elixir
 # type & min do not run here
 Validate.validate(nil, nullable: true, type: :string, min: 10)
+```
+
+### regex 
+
+The field under validation must match the provided pattern.
+
+```elixir
+Validate.validate("1234", type: :string, regex: ~r/[0-9]/)
 ```
 
 ### required
@@ -333,8 +506,22 @@ Validate.validate("user_1234", type: :string, starts_with: "user_")
 
 The field under validation must be of the specified type.
 
-Valid types are: `atom`, `binary`, `boolean`, `float`, `function`, `list`, `map`, `number`, `string`, `tuple`.
+Valid types are: `atom`, `binary`, `boolean`, `float`, `function`, `integer`, `list`, `map`, `number`, `string`, `tuple`.
 
 ```elixir
 Validate.validate(:user, type: :atom)
+```
+
+### uppercase 
+
+The field under validation must be all uppercase.
+
+```elixir
+Validate.validate("HELLO", type: :string, uppercase: true)
+```
+
+The field under validation must not be all uppercase.
+
+```elixir
+Validate.validate("hEllO", type: :string, uppercase: false)
 ```

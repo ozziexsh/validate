@@ -19,6 +19,7 @@ defmodule Validate.Type do
   defp validate_type(value, :boolean) when not is_boolean(value), do: :error
   defp validate_type(value, :float) when not is_float(value), do: :error
   defp validate_type(value, :function) when not is_function(value), do: :error
+  defp validate_type(value, :integer) when not is_integer(value), do: :error
   defp validate_type(value, :list) when not is_list(value), do: :error
   defp validate_type(value, :map) when not is_map(value), do: :error
   defp validate_type(value, :number) when not is_number(value), do: :error
