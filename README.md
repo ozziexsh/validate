@@ -13,7 +13,7 @@ Add Validate to your mix.exs dependencies:
 ```elixir
 defp deps do
   [
-    {:validate, "~> 1.0"}
+    {:validate, "~> 1.1"}
   ]
 end
 ```
