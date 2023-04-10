@@ -152,7 +152,7 @@ defmodule Validate do
     rule_str = Atom.to_string(rule)
 
     if rule_str in @fns do
-      module = "Elixir.Validate.#{Macro.camelize(rule_str)}" |> String.to_existing_atom()
+      module = "Elixir.Validate.Rules.#{Macro.camelize(rule_str)}" |> String.to_existing_atom()
 
       &module.validate/1
     else
