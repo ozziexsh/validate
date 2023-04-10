@@ -53,4 +53,13 @@ defmodule ValidateTest.Plugs.FormRequestTest do
   test "it calls validation err if validation fails" do
     assert TestMod.call(%{params: @invalid_input}, TestReq) == "validate err"
   end
+
+  test "it calls perform if present on request" do
+    defmodule PerfReq do
+      def rules(_), do: %{"name" => [required: true]}
+      def perform(_, data), do: {"perform", data}
+    end
+
+    assert TestMod.call(%{params: @valid_input}, PerfReq) == {"perform", @valid_input}
+  end
 end

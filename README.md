@@ -13,7 +13,7 @@ Add Validate to your mix.exs dependencies:
 ```elixir
 defp deps do
   [
-    {:validate, "~> 1.1"}
+    {:validate, "~> 1.2"}
   ]
 end
 ```
@@ -24,7 +24,7 @@ end
 - [x] Built in validation rules
 - [x] Custom validation rules
 - [x] Return validated keys only
-- [x] Plug
+- [x] Plug support
 - [ ] i18n
 
 ## Table of Contents
@@ -37,6 +37,7 @@ end
 - [Errors](#errors)
   - [Formatting Errors](#formatting-errors)
 - [Custom Validation Rules](#custom-validation-rules)
+- [Plug](#plug)
 - [Built in Validation Rules](#built-in-validation-rules)
 
 ## Usage
@@ -280,25 +281,26 @@ defmodule MyAppWeb.Plugs.FormRequest do
   # called when validation passess
   # use this to make the validated data available to your controller
   def validate_success(conn, data) do
-    conn |> assign(conn, :validated, data)
+    conn |> assign(:validated, data)
   end
 
   def validate_error(conn, errors) do
-    conn |> put_status(422) |> halt()
+    error_map = Validate.Util.errors_to_map(errors)
+    conn |> put_status(422) |> Phoenix.Controller.json(%{errors: error_map}) |> halt()
   end
 
   def auth_error(conn) do
-    conn |> put_status(401) |> halt()
+    conn |> put_status(401) |> Phoenix.Controller.json(%{message: "unauthorized"}) |> halt()
   end
 end
 ```
 
 Now we can create a module that will handle the request. This module can exist anywhere but needs to implement at least a `rules/1` function and optionally an `authorize/1` function. `authorize/1` will be called first if it is present, and only if it returns a truthy value will it continue to validate the input, if it returns a falsy value we will call the `auth_error` function in our plug from earlier. `rules/1` should return a map of rules that will be validated against `conn.params`. 
 
-Let's pretend we're making a form to create a team in our application. We might put this in `my_app_web/requests/create_team_request.ex`.
+Let's pretend we're making a form to create a team in our application. We might put this in `my_app_web/requests/store_team_request.ex`.
 
 ```elixir
-defmodule MyAppWeb.Requests.CreateTeamRequest do
+defmodule MyAppWeb.Requests.StoreTeamRequest do
   # can only create a team if we do not already have a team
   def authorize(conn) do
     conn.assigns.user && !conn.assigns.team
@@ -320,15 +322,53 @@ Now we're ready to use this in our controller. Let's assume we have a controller
 defmodule MyAppWeb.Controllers.TeamController do
   use MyAppWeb, :controller
 
-  plug MyAppWeb.Plugs.FormRequest, MyAppWeb.Requests.CreateTeamRequest when action in [:create]
+  plug MyAppWeb.Plugs.FormRequest, MyAppWeb.Requests.StoreTeamRequest when action in [:store]
 
-  def create(conn, params) do
+  def store(conn, params) do
     # now we can operate in here knowing that
     # our request is authorized and the validated data
     # is in conn.assigns.validated
   end
 end
 ```
+
+The controller can be registered like normal in your routes file, and the plug will take care of authorizing and validating before calling the controller action!
+
+```elixir
+# inside your routes file somewhere
+scope "/" do
+  pipe_through [:browser]
+
+  post "/teams", MyAppWeb.Controllers.TeamController, :store
+end
+```
+
+If you wanted, you could bypass the controller all together by adding a `perform/2` function to the request module and just handle the request right there:
+
+```elixir
+defmodule MyAppWeb.Requests.StoreTeamRequest do
+  def rules(_conn) do
+    %{
+      "name" => [required: true, type: :string, max: 80],
+      # ...
+    }
+  end
+
+  def perform(conn, data) do
+    # skip the controller and just handle the request here
+    # `data` is the validated data
+  end
+end
+
+# then in your router file
+scope "/" do
+  pipe_through [:browser]
+
+  post "/teams", MyAppWeb.Plugs.FormRequest, MyAppWeb.Requests.StoreTeamRequest
+end
+```
+
+If you choose to use `perform/2` then the `validate_success` option provided in `plugs/form_request.ex` will be ignored for that request.
 
 ## Built in Validation Rules
 

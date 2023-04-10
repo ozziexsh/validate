@@ -11,7 +11,11 @@ defmodule Validate.Plugs.FormRequest do
         with {:auth, true} <- {:auth, maybe_authorize(conn, request)},
              {:validate, {:ok, data}} <-
                {:validate, Validate.validate(conn.params, request.rules(conn))} do
-          apply(__MODULE__, unquote(validate_success), [conn, data])
+          if Kernel.function_exported?(request, :perform, 2) do
+            apply(request, :perform, [conn, data])
+          else
+            apply(__MODULE__, unquote(validate_success), [conn, data])
+          end
         else
           {:auth, false} ->
             apply(__MODULE__, unquote(auth_error), [conn])
