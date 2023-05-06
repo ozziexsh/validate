@@ -139,7 +139,7 @@ defmodule Validate do
         {code, opts.value, [%Error{path: path, rule: opts.rule, message: reason}]}
 
       {:halt} ->
-        {:ok, opts.value, []}
+        {:halt, opts.value, []}
 
       {:ok, value} ->
         {:ok, value, []}

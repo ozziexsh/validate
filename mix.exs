@@ -7,7 +7,7 @@ defmodule Validate.MixProject do
       name: "Validate",
       description: description(),
       package: package(),
-      version: "1.2.0",
+      version: "1.2.1",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
