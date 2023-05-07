@@ -4,7 +4,7 @@ defmodule Validate do
   """
   alias Validate.Validator.{Error, Arg}
 
-  @fns ~w[between digits_between digits ends_with in lowercase max_digits max min_digits min not_ends_with not_in not_regex not_starts_with nullable regex required size starts_with type uppercase]
+  @fns ~w[between cast characters digits_between digits ends_with in ip lowercase max_digits max min_digits min not_ends_with not_in not_regex not_starts_with nullable regex required size starts_with type uppercase url uuid]
 
   @doc """
   Validates an input against a given list of rules

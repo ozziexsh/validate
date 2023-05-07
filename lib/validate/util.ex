@@ -13,10 +13,12 @@ defmodule Validate.Util do
   @doc false
   def get_type(a) do
     cond do
+      is_nil(a) -> "nil"
       is_atom(a) -> "atom"
       is_binary(a) -> "binary"
       is_boolean(a) -> "boolean"
       is_float(a) -> "float"
+      is_integer(a) -> "integer"
       is_list(a) -> "list"
       is_map(a) -> "map"
       is_number(a) -> "number"

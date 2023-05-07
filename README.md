@@ -206,7 +206,7 @@ You can write your own validators by using the `custom:` rule. You can write the
 Validation rules must return one of four possible outcomes:
 
 - `Validate.Validator.success(value)` - Return this when validation passes. You must pass the value back as the first arg. This gives you the opportunity to transform the value if you wish.
-- `Validate.Validator.error(message)` - Return this when validation fails. You must pass a message back to the user to let them know why it failed. 
+- `Validate.Validator.error(message)` - Return this when validation fails. You must pass a message back to the user to let them know why it failed.
 - `Validate.Validator.halt(message)` - Return this when validation fails AND you want to prevent any further validation from running on this specific input.
 - `Validate.Validator.halt()` - Return this when validation succeeds BUT you do not want any further validations to happen on this specific input.
 
@@ -263,7 +263,7 @@ rules = %{
 
 ## Plug
 
-You can use Validate as a plug to simplify your controllers by performing validation and authorization outside of your controller action. 
+You can use Validate as a plug to simplify your controllers by performing validation and authorization outside of your controller action.
 
 First you need to create a file in your project for the plug. This is required so that you can control what happens when different events occur. Some applications may wish to return JSON, while others want to redirect to a route. Providing this as a macro in your own application gives you the flexibility to handle this how you please.
 
@@ -295,7 +295,7 @@ defmodule MyAppWeb.Plugs.FormRequest do
 end
 ```
 
-Now we can create a module that will handle the request. This module can exist anywhere but needs to implement at least a `rules/1` function and optionally an `authorize/1` function. `authorize/1` will be called first if it is present, and only if it returns a truthy value will it continue to validate the input, if it returns a falsy value we will call the `auth_error` function in our plug from earlier. `rules/1` should return a map of rules that will be validated against `conn.params`. 
+Now we can create a module that will handle the request. This module can exist anywhere but needs to implement at least a `rules/1` function and optionally an `authorize/1` function. `authorize/1` will be called first if it is present, and only if it returns a truthy value will it continue to validate the input, if it returns a falsy value we will call the `auth_error` function in our plug from earlier. `rules/1` should return a map of rules that will be validated against `conn.params`.
 
 Let's pretend we're making a form to create a team in our application. We might put this in `my_app_web/requests/store_team_request.ex`.
 
@@ -375,10 +375,13 @@ If you choose to use `perform/2` then the `validate_success` option provided in 
 Examples show input that would successfully validate. Some rules require a type to be specified first in order to properly validate.
 
 - [between](#between)
+- [cast](#cast)
+- [characters](#characters)
 - [digits_between](#digits_between)
 - [digits](#digits)
 - [ends_with](#ends_with)
 - [in](#in)
+- [ip/v4/v6](#ip)
 - [lowercase](#lowercase)
 - [max_digits](#max_digits)
 - [max](#max)
@@ -395,6 +398,8 @@ Examples show input that would successfully validate. Some rules require a type 
 - [starts_with](#starts_with)
 - [type](#type)
 - [uppercase](#uppercase)
+- [url](#url)
+- [uuid](#uuid)
 
 ### between
 
@@ -403,6 +408,47 @@ The field under validation must be between the two numbers (inclusive).
 ```elixir
 Validate.validate(10, type: :number, between: {1, 20})
 ```
+
+### cast
+
+Trys to convert the field to the specified type. Can be used in place of the [`type`](#type) rule if you e.g. want a number as the end result but are taking input from an HTML form which is inputted as a string. Later validation rules and the resulting validated data will contain the casted value in the new type. Prevents further rules from running if validation fails.
+
+Available types are: `:atom`, `:boolean`, `:float`, `:integer`, `:string`.
+
+```elixir
+Validate.validate("123", cast: :integer)
+```
+
+`nil` is converted to the appropriate "empty" value of the type:
+
+- `:atom` -> `:""`
+- `:boolean` -> `false`
+- `:float` -> `0.0`
+- `:integer` -> `0`
+- `:string` -> `""`
+
+If you'd like to preserve `nil` you must use the full syntax and pass the `:preserve` flag:
+
+```elixir
+Validate.validate(nil, cast: [to: :integer, nil: :preserve])
+```
+
+### characters
+
+The field under validation must have a specific set of characters. Useful for things like usernames.
+
+```elixir
+# letters only
+Validate.validate("LeslieKnope", type: :string, characters: :alpha)
+
+# letters + numbers
+Validate.validate("LeslieKnope123", type: :string, characters: :alpha_num)
+
+# letters, numbers, dashes, underscores
+Validate.validate("Leslie-Knope_123", type: :string, characters: :alpha_dash)
+```
+
+Each option also has an `_ascii` alternative available to restrict any non-ascii characters: `:alpha_ascii`, `:alpha_num_ascii`, `:alpha_dash_ascii`.
 
 ### digits_between
 
@@ -434,6 +480,21 @@ The field under validation must be in the provided array.
 
 ```elixir
 Validate.validate("blue", type: :string, in: ["red", "green", "blue"])
+```
+
+### ip
+
+The field under validation must be a valid IP address.
+
+```elixir
+# allows v4 or v6
+Validate.validate("127.0.0.1", type: :string, ip: true)
+
+# v4 only
+Validate.validate("127.0.0.1", type: :string, ip: :v4)
+
+# v6 only
+Validate.validate("3ffe:b80:1f8d:2:204:acff:fe17:bf3", type: :string, ip: :v6)
 ```
 
 ### lowercase
@@ -517,7 +578,7 @@ The field under validation must be greater than or equal to the provided number.
 Validate.validate(10, type: :number, min: 1)
 ```
 
-### not_ends_with 
+### not_ends_with
 
 The field under validation must not end with the provided string.
 
@@ -533,7 +594,7 @@ The field under validation must not be in the provided array.
 Validate.validate("black", type: :string, not_in: ["red", "green", "blue"])
 ```
 
-### not_regex 
+### not_regex
 
 The field under validation must not match the provided pattern.
 
@@ -541,7 +602,7 @@ The field under validation must not match the provided pattern.
 Validate.validate("abcd", type: :string, not_regex: ~r/[0-9]/)
 ```
 
-### not_starts_with 
+### not_starts_with
 
 The field under validation must not start with the provided string.
 
@@ -558,7 +619,7 @@ The field under validation can be `nil`. If the value is `nil`, it does not proc
 Validate.validate(nil, nullable: true, type: :string, min: 10)
 ```
 
-### regex 
+### regex
 
 The field under validation must match the provided pattern.
 
@@ -568,7 +629,7 @@ Validate.validate("1234", type: :string, regex: ~r/[0-9]/)
 
 ### required
 
-The field under validation must not be empty. 
+The field under validation must not be empty.
 
 Empty values are `nil`, `""`, `%{}`, `[]`, `{}`.
 
@@ -576,7 +637,7 @@ Empty values are `nil`, `""`, `%{}`, `[]`, `{}`.
 Validate.validate("red", required: true)
 ```
 
-If set to `required: false`, empty values will be accepted. 
+If set to `required: false`, empty values will be accepted.
 
 ```elixir
 Validate.validate("", required: false)
@@ -623,7 +684,7 @@ Valid types are: `atom`, `binary`, `boolean`, `float`, `function`, `integer`, `l
 Validate.validate(:user, type: :atom)
 ```
 
-### uppercase 
+### uppercase
 
 The field under validation must be all uppercase.
 
@@ -635,4 +696,20 @@ The field under validation must not be all uppercase.
 
 ```elixir
 Validate.validate("hEllO", type: :string, uppercase: false)
+```
+
+### url
+
+The field under validation must be a valid url. Evaluated using `URI.new/1` and requires that the url has scheme (such as `http://`).
+
+```elixir
+Validate.validate("https://example.com", type: :string, url: true)
+```
+
+### uuid
+
+The field under validation must be a uuid.
+
+```elixir
+Validate.validate("123e4567-e89b-12d3-a456-426655440000", type: :string, uuid: true)
 ```
