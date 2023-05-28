@@ -374,9 +374,11 @@ If you choose to use `perform/2` then the `validate_success` option provided in 
 
 Examples show input that would successfully validate. Some rules require a type to be specified first in order to properly validate.
 
+- [comparison operators (==, >, >=, <, <=)](#comparison-operators)
 - [between](#between)
 - [cast](#cast)
 - [characters](#characters)
+- [date_string](#date_string)
 - [digits_between](#digits_between)
 - [digits](#digits)
 - [ends_with](#ends_with)
@@ -400,6 +402,18 @@ Examples show input that would successfully validate. Some rules require a type 
 - [uppercase](#uppercase)
 - [url](#url)
 - [uuid](#uuid)
+
+### comparison operators
+
+You can use atoms of `==`, `>`, `>=`, `<`, and `<=` to compare values.
+
+Aside from primitive values you can compare Date, DateTime, and NaiveDateTime values.
+
+```elixir
+Validate.validate("bob", ==: "bob")
+
+Validate.validate(~D[2020-02-15], >: ~D[2015-10-14])
+```
 
 ### between
 
@@ -449,6 +463,14 @@ Validate.validate("Leslie-Knope_123", type: :string, characters: :alpha_dash)
 ```
 
 Each option also has an `_ascii` alternative available to restrict any non-ascii characters: `:alpha_ascii`, `:alpha_num_ascii`, `:alpha_dash_ascii`.
+
+### date_string
+
+The field under validation must be a string matching a valid Timex string format.
+
+```elixir
+Validate.validate("2020-02-10", date_string: "{YYYY}-{0M}-{0D}")
+```
 
 ### digits_between
 
@@ -678,7 +700,7 @@ Validate.validate("user_1234", type: :string, starts_with: "user_")
 
 The field under validation must be of the specified type.
 
-Valid types are: `atom`, `binary`, `boolean`, `float`, `function`, `integer`, `list`, `map`, `number`, `string`, `tuple`.
+Valid types are: `atom`, `binary`, `boolean`, `date`, `datetime`, `float`, `function`, `integer`, `list`, `map`, `naive_datetime`, `number`, `string`, `tuple`.
 
 ```elixir
 Validate.validate(:user, type: :atom)

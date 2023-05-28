@@ -1,6 +1,6 @@
 defmodule ValidateTest.Rules.CharactersTest do
   use ExUnit.Case
-  doctest Validate.Rules.Ip
+  doctest Validate.Rules.Characters
   alias Validate.Rules.Characters
 
   import Validate.Validator

@@ -132,4 +132,41 @@ defmodule ValidateTest.Rules.CastTest do
                success("123")
     end
   end
+
+  describe "arg {:date, format}" do
+    test "it casts a string date to a format" do
+      assert Cast.validate(%{@input | arg: {:date, "{YYYY}-{0M}-{0D}"}, value: "2020-02-15"}) ==
+               success(~D[2020-02-15])
+
+      assert Cast.validate(%{@input | arg: {:date, "{YYYY}-{0M}-{0D}"}, value: "2020-12-15"}) ==
+               success(~D[2020-12-15])
+
+      assert Cast.validate(%{@input | arg: {:date, "{YYYY}-{0M}-{0D}"}, value: "15-12-2020"}) ==
+               halt("could not cast to date")
+    end
+  end
+
+  describe "arg {:datetime, format}" do
+    test "it casts a string date to a datetime format" do
+      arg = %{@input | arg: {:datetime, "{ISO:Extended}"}, value: "2020-02-15T10:15:20Z"}
+
+      assert Cast.validate(arg) == success(~U[2020-02-15T10:15:20Z])
+
+      arg = %{@input | arg: {:datetime, "{ISO:Extended}"}, value: "2020-02-15 T 10:15:20Z"}
+
+      assert Cast.validate(arg) == halt("could not cast to datetime")
+    end
+  end
+
+  describe "arg {:naive_datetime, format}" do
+    test "it casts a string date to a naive_datetime format" do
+      arg = %{@input | arg: {:naive_datetime, "{ISO:Extended}"}, value: "2020-02-15T10:15:20"}
+
+      assert Cast.validate(arg) == success(~N[2020-02-15T10:15:20])
+
+      arg = %{@input | arg: {:naive_datetime, "{ISO:Extended}"}, value: "2020-02-15 T 10:15:20"}
+
+      assert Cast.validate(arg) == halt("could not cast to naive_datetime")
+    end
+  end
 end

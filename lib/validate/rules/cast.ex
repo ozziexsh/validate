@@ -8,6 +8,10 @@ defmodule Validate.Rules.Cast do
     validate(%{opts | arg: [to: new_type]})
   end
 
+  def validate(%{arg: date_args} = opts) when is_tuple(date_args) do
+    validate(%{opts | arg: [to: date_args]})
+  end
+
   def validate(%{value: value, arg: options}) do
     preserve_nil? = Keyword.get(options, nil, :convert) == :preserve
     new_type = Keyword.get(options, :to)
@@ -19,7 +23,9 @@ defmodule Validate.Rules.Cast do
         converted = convert!(new_type, value)
         success(converted)
       rescue
-        _ -> halt("could not cast to #{new_type}")
+        _ ->
+          type_string = if is_tuple(new_type), do: elem(new_type, 0), else: new_type
+          halt("could not cast to #{type_string}")
       end
     end
   end
@@ -68,5 +74,17 @@ defmodule Validate.Rules.Cast do
 
   defp convert!(:string, value) do
     to_string(value)
+  end
+
+  defp convert!({:date, format}, value) do
+    Timex.parse!(value, format) |> Timex.to_date()
+  end
+
+  defp convert!({:naive_datetime, format}, value) do
+    Timex.parse!(value, format) |> Timex.to_naive_datetime()
+  end
+
+  defp convert!({:datetime, format}, value) do
+    Timex.parse!(value, format) |> Timex.to_datetime()
   end
 end

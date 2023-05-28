@@ -25,5 +25,8 @@ defmodule Validate.Rules.Type do
   defp validate_type(value, :number) when not is_number(value), do: :error
   defp validate_type(value, :string) when not is_bitstring(value), do: :error
   defp validate_type(value, :tuple) when not is_tuple(value), do: :error
+  defp validate_type(value, :date) when not is_struct(value, Date), do: :error
+  defp validate_type(value, :naive_datetime) when not is_struct(value, NaiveDateTime), do: :error
+  defp validate_type(value, :datetime) when not is_struct(value, DateTime), do: :error
   defp validate_type(_value, _type), do: :ok
 end
