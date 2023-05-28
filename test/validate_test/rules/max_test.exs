@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.MaxTest do
 
   @error {:error, "must be at most 3"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, max: 15) == success(10)
+  end
+
   describe "string" do
     test "returns error when more than 3" do
       assert Validate.Rules.Max.validate(%{@input | value: "1234"}) == @error

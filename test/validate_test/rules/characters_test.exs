@@ -15,6 +15,10 @@ defmodule ValidateTest.Rules.CharactersTest do
   @error_dash {:error, "must only contain letters, numbers, dashes, and underscores"}
   @error_num {:error, "must only contain letters and numbers"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("abcd", characters: :alpha) == success("abcd")
+  end
+
   describe "arg: alpha" do
     test "it returns success when only letters" do
       assert Characters.validate(%{@input | value: "ABcd"}) == success("ABcd")

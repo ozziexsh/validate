@@ -13,6 +13,10 @@ defmodule ValidateTest.Rules.LowercaseTest do
   @error_true {:error, "must be in lowercase"}
   @error_false {:error, "must not be in lowercase"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("ok", lowercase: true) == success("ok")
+  end
+
   describe "lowercase: true" do
     test "when the string is lowercase return success" do
       assert Validate.Rules.Lowercase.validate(%{@input | value: "abcd"}) == success("abcd")

@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.RequiredTest do
 
   @error {:halt, "is required"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, required: true) == success(10)
+  end
+
   describe "strings" do
     test "it returns error when empty" do
       assert Validate.Rules.Required.validate(@input) == @error

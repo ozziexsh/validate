@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.DigitsTest do
 
   @error {:error, "must be exactly 3 digits long"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, digits: 2) == success(10)
+  end
+
   test "when number is the right amount of digits" do
     assert Validate.Rules.Digits.validate(%{@input | value: 100}) == success(100)
   end

@@ -11,6 +11,10 @@ defmodule ValidateTest.Rules.UrlTest do
     arg: true
   }
 
+  test "it can be called from validate" do
+    assert Validate.validate("http://example.com", url: true) == success("http://example.com")
+  end
+
   test "valid url with scheme returns success" do
     assert Url.validate(%{@input | value: "http://example.com"}) == success("http://example.com")
 

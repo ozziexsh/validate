@@ -12,7 +12,7 @@ defmodule ValidateTest.Rules.GreaterThanTest do
   }
 
   test "it can be called from validate" do
-    assert Validate.validate(15, >=: 10) == success(15)
+    assert Validate.validate(15, >: 10) == success(15)
   end
 
   test "it compares numbers" do

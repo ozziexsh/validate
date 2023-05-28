@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.EndsWithTest do
 
   @error {:error, "must end with _user"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("user_123", ends_with: "123") == success("user_123")
+  end
+
   test "it returns success when string ends with _user" do
     assert Validate.Rules.EndsWith.validate(%{@input | value: "some_user"}) ==
              success("some_user")

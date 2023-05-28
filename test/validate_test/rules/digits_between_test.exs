@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.DigitsBetweenTest do
 
   @error {:error, "must be between 2 and 4 digits"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, digits_between: {2, 4}) == success(10)
+  end
+
   test "when number is lower bound" do
     assert Validate.Rules.DigitsBetween.validate(%{@input | value: 10}) == success(10)
   end

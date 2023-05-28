@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.MaxDigitsTest do
 
   @error {:error, "must be at most 3 digits long"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, max_digits: 10) == success(10)
+  end
+
   test "when number is the right amount of digits" do
     assert Validate.Rules.MaxDigits.validate(%{@input | value: 100}) == success(100)
   end

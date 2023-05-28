@@ -11,6 +11,10 @@ defmodule ValidateTest.Rules.CastTest do
     arg: :string
   }
 
+  test "it can be called from validate" do
+    assert Validate.validate("10", cast: :integer) == success(10)
+  end
+
   describe "arg: :atom" do
     test "it returns an atom if given an atom" do
       assert Cast.validate(%{@input | arg: :atom, value: :ok}) == success(:ok)

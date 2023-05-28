@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.StartsWithTest do
 
   @error {:error, "must start with user_"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("user_123", starts_with: "user_") == success("user_123")
+  end
+
   test "it returns success when string starts with user_" do
     assert Validate.Rules.StartsWith.validate(%{@input | value: "user_1234"}) ==
              success("user_1234")

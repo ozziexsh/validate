@@ -11,6 +11,10 @@ defmodule ValidateTest.Rules.TypeTest do
     arg: ""
   }
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, type: :integer) == success(10)
+  end
+
   test "atom" do
     value = :any
     assert Type.validate(%{@input | value: value, arg: :atom}) == success(value)

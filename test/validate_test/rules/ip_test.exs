@@ -17,6 +17,10 @@ defmodule ValidateTest.Rules.IpTest do
   @error_v4 {:error, "not a valid ipv4 address"}
   @error_v6 {:error, "not a valid ipv6 address"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("127.0.0.1", ip: true) == success("127.0.0.1")
+  end
+
   describe "arg: true" do
     test "it returns success when value is a v4" do
       assert Validate.Rules.Ip.validate(%{@input | value: @v4}) == success(@v4)

@@ -11,6 +11,10 @@ defmodule ValidateTest.Rules.GreaterThanEqualTest do
     arg: ""
   }
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, >=: 10) == success(10)
+  end
+
   test "it compares numbers" do
     assert GreaterThanEqual.validate(%{@input | value: 1, arg: 1}) == success(1)
     assert GreaterThanEqual.validate(%{@input | value: 10, arg: 1}) == success(10)

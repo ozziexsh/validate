@@ -10,6 +10,11 @@ defmodule ValidateTest.Rules.UuidTest do
     arg: true
   }
 
+  test "it can be called from validate" do
+    assert Validate.validate("123e4567-e89b-12d3-a456-426655440000", uuid: true) ==
+             success("123e4567-e89b-12d3-a456-426655440000")
+  end
+
   test "valid v4 uuid" do
     value = "123e4567-e89b-12d3-a456-426655440000"
     assert Validate.Rules.Uuid.validate(%{@input | value: value}) == success(value)

@@ -13,6 +13,10 @@ defmodule ValidateTest.Rules.UppercaseTest do
   @error_true {:error, "must be in uppercase"}
   @error_false {:error, "must not be in uppercase"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("OK", uppercase: true) == success("OK")
+  end
+
   describe "uppercase: true" do
     test "when the string is uppercase return success" do
       assert Validate.Rules.Uppercase.validate(%{@input | value: "ABCD"}) == success("ABCD")
