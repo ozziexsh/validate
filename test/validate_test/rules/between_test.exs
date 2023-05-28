@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.BetweenTest do
 
   @error {:error, "must be between 1 and 10"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, between: {1, 10}) == success(10)
+  end
+
   test "when number is lower bound" do
     assert Validate.Rules.Between.validate(%{@input | value: 1}) == success(1)
   end

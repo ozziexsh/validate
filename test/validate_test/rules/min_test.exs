@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.MinTest do
 
   @error {:error, "must be at least 3"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, min: 5) == success(10)
+  end
+
   describe "string" do
     test "returns error when less than 3" do
       assert Validate.Rules.Min.validate(@input) == @error

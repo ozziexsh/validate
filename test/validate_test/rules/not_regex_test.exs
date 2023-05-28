@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.NotRegexTest do
 
   @error {:error, "must not match pattern [0-9]"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("abcd", not_regex: ~r/[0-9]/) == success("abcd")
+  end
+
   test "it returns success when string does not match pattern" do
     assert Validate.Rules.NotRegex.validate(%{@input | value: "abcd"}) == success("abcd")
   end

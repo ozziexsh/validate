@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.MinDigitsTest do
 
   @error {:error, "must be at least 3 digits long"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, min_digits: 1) == success(10)
+  end
+
   test "when number is the right amount of digits" do
     assert Validate.Rules.MinDigits.validate(%{@input | value: 100}) == success(100)
   end

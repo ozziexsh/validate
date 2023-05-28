@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.NullableTest do
 
   @error {:error, "must not be nil"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(nil, nullable: true) == success(nil)
+  end
+
   test "it returns halt when value is nil and nullable: true" do
     assert Validate.Rules.Nullable.validate(%{@input | value: nil}) == halt()
   end

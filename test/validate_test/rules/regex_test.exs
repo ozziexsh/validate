@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.RegexTest do
 
   @error {:error, "must match pattern [0-9]"}
 
+  test "it can be called from validate" do
+    assert Validate.validate("10", regex: ~r/[0-9]/) == success("10")
+  end
+
   test "it returns success when string matches pattern" do
     assert Validate.Rules.Regex.validate(%{@input | value: "1234"}) == success("1234")
   end

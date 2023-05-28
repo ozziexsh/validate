@@ -12,6 +12,10 @@ defmodule ValidateTest.Rules.NotInTest do
 
   @error {:error, "must not be one of 1, 2, 3"}
 
+  test "it can be called from validate" do
+    assert Validate.validate(10, not_in: [1, 2, 3]) == success(10)
+  end
+
   test "it returns success when value is not in array" do
     assert Validate.Rules.NotIn.validate(%{@input | value: 4}) == success(4)
   end
