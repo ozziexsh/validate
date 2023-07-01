@@ -45,4 +45,11 @@ defmodule Validate.Util do
       Map.put(acc, key, existing ++ [error.message])
     end)
   end
+
+  def empty?([]), do: true
+  def empty?(""), do: true
+  def empty?(map) when map == %{}, do: true
+  def empty?(nil), do: true
+  def empty?({}), do: true
+  def empty?(_value), do: false
 end
