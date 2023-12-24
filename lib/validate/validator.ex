@@ -10,7 +10,7 @@ defmodule Validate.Validator do
 
   defmodule Arg do
     @moduledoc false
-    defstruct value: nil, arg: nil, input: nil
+    defstruct value: nil, arg: nil, input: nil, parent: nil, name: nil
   end
 
   @doc """
@@ -32,4 +32,6 @@ defmodule Validate.Validator do
   Used in validators to indicate validation was successful for a field
   """
   def success(value), do: {:ok, value}
+
+  def ignore(), do: {:ignore}
 end

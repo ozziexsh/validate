@@ -104,6 +104,33 @@ defmodule ValidateTest do
     assert get_in(data, ["address", "city"]) == nil
   end
 
+  test "it optionally keeps extraneous data" do
+    rules = %{
+      "email" => [required: true, type: :string],
+      "address" => [
+        required: true,
+        map: %{
+          "line1" => [required: true]
+        }
+      ]
+    }
+
+    input = %{
+      "email" => "somethin",
+      "address" => %{
+        "line1" => "123 fake st",
+        "city" => "saskatoon"
+      },
+      "unexpected" => "asdhadas"
+    }
+
+    assert {:ok, data} = Validate.validate(input, rules, filter_keys: false)
+    assert Map.get(data, "unexpected") == "asdhadas"
+    assert Map.get(data, "email") == "somethin"
+    assert get_in(data, ["address", "line1"]) == "123 fake st"
+    assert get_in(data, ["address", "city"]) == "saskatoon"
+  end
+
   test "it handles custom validators" do
     rules = %{
       "email" => [

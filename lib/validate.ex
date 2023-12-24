@@ -4,7 +4,7 @@ defmodule Validate do
   """
   alias Validate.Validator.{Error, Arg}
 
-  @fns ~w[between cast characters date_string digits_between digits ends_with filled in ip json lowercase max_digits max min_digits min not_ends_with not_in not_regex not_starts_with nullable regex required size starts_with type uppercase url uuid]
+  @fns ~w[between cast characters date_string digits_between digits ends_with filled in ip json lowercase max_digits max min_digits min not_ends_with not_in not_regex not_starts_with nullable present regex required size starts_with type uppercase url uuid]
 
   @doc """
   Validates an input against a given list of rules
@@ -15,14 +15,17 @@ defmodule Validate do
       iex> {:error, _errors} = Validate.validate([], required: true, type: :list)
       iex> {:ok, _data} = Validate.validate(%{"name" => "Jane"}, %{"name" => [required: true, type: :string]})
   """
-  def validate(input, rules) when is_list(rules) do
-    {input, errors} =
+  def validate(input, rules, opts \\ [])
+
+  def validate(input, rules, opts) when is_list(rules) do
+    {_, input, errors} =
       validate_single_input(%{
         value: input,
         valueName: nil,
         rules: rules,
         input: input,
-        path: []
+        path: [],
+        config: opts
       })
 
     cond do
@@ -31,21 +34,28 @@ defmodule Validate do
     end
   end
 
-  def validate(input, rules) do
+  def validate(input, rules, opts) do
+    filter_keys? = Keyword.get(opts, :filter_keys, true)
+    starting_value = if filter_keys?, do: %{}, else: input
+
     {input, errors} =
-      Enum.reduce(rules, {%{}, []}, fn {inputName, ruleList}, {filteredInput, finalErrors} ->
+      Enum.reduce(rules, {starting_value, []}, fn {inputName, ruleList},
+                                                  {filteredInput, finalErrors} ->
         inputValue = Map.get(input, inputName)
 
-        {inputValue, inputErrors} =
+        {code, inputValue, inputErrors} =
           validate_single_input(%{
             value: inputValue,
             valueName: inputName,
             rules: ruleList,
             input: input,
-            path: []
+            path: [],
+            config: opts,
+            parent: input
           })
 
         cond do
+          code == :ignore -> {filteredInput, finalErrors}
           Enum.count(inputErrors) > 0 -> {filteredInput, finalErrors ++ inputErrors}
           true -> {Map.put(filteredInput, inputName, inputValue), finalErrors}
         end
@@ -58,11 +68,11 @@ defmodule Validate do
   end
 
   defp validate_single_input(opts) do
-    {_, value, errors} =
+    {code, value, errors} =
       Enum.reduce(opts.rules, {:ok, opts.value, []}, fn {ruleName, ruleArg},
                                                         {continue, value, allErrors} ->
         case continue do
-          :halt ->
+          x when x in [:halt, :ignore] ->
             {continue, value, allErrors}
 
           _ ->
@@ -74,30 +84,34 @@ defmodule Validate do
                 valueName: opts.valueName,
                 rules: opts.rules,
                 input: opts.input,
-                path: opts.path
+                path: opts.path,
+                config: opts.config,
+                parent: Map.get(opts, :parent, value)
               })
 
             {code, data, allErrors ++ errors}
         end
       end)
 
-    {value, errors}
+    {code, value, errors}
   end
 
   defp run_validator_rule(%{rule: :list, arg: rulesForList} = opts) do
     opts.value
     |> Enum.with_index()
     |> Enum.reduce({:ok, [], []}, fn {item, i}, {_, value, allErrors} ->
-      {data, errors} =
+      {code, data, errors} =
         validate_single_input(%{
           value: item,
           valueName: i,
           rules: rulesForList,
           input: opts.input,
-          path: opts.path ++ [opts.valueName]
+          path: opts.path ++ [opts.valueName],
+          config: opts.config
         })
 
       cond do
+        code == :ignore -> {:ok, value, allErrors}
         Enum.count(errors) > 0 -> {:error, value, allErrors ++ errors}
         true -> {:ok, value ++ [data], allErrors}
       end
@@ -105,21 +119,28 @@ defmodule Validate do
   end
 
   defp run_validator_rule(%{rule: :map, arg: rulesForMap} = opts) do
+    filter_keys? = Keyword.get(opts.config, :filter_keys, true)
+    starting_value = if filter_keys?, do: %{}, else: opts.value
+
     rulesForMap
-    |> Enum.reduce({:ok, %{}, []}, fn {subKey, subRules}, {_, filteredValue, allErrors} ->
+    |> Enum.reduce({:ok, starting_value, []}, fn {subKey, subRules},
+                                                 {_, filteredValue, allErrors} ->
       path = if opts.valueName != nil, do: [opts.valueName], else: []
       path = opts.path ++ path
 
-      {data, errors} =
+      {code, data, errors} =
         validate_single_input(%{
           value: Map.get(opts.value, subKey),
           valueName: subKey,
           rules: subRules,
           input: opts.input,
-          path: path
+          path: path,
+          config: opts.config,
+          parent: opts.value
         })
 
       cond do
+        code == :ignore -> {:ok, filteredValue, allErrors}
         Enum.count(errors) > 0 -> {:error, filteredValue, allErrors ++ errors}
         true -> {:ok, Map.put(filteredValue, subKey, data), allErrors}
       end
@@ -129,7 +150,14 @@ defmodule Validate do
   defp run_validator_rule(opts) do
     handler = get_handler(opts)
 
-    result = handler.(%Arg{value: opts.value, arg: opts.arg, input: opts.input})
+    result =
+      handler.(%Arg{
+        value: opts.value,
+        arg: opts.arg,
+        input: opts.input,
+        parent: opts[:parent],
+        name: opts[:valueName]
+      })
 
     path = if opts.valueName != nil, do: [opts.valueName], else: []
     path = opts.path ++ path
@@ -140,6 +168,9 @@ defmodule Validate do
 
       {:halt} ->
         {:halt, opts.value, []}
+
+      {:ignore} ->
+        {:ignore, nil, []}
 
       {:ok, value} ->
         {:ok, value, []}
