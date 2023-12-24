@@ -7,7 +7,7 @@ defmodule Validate.MixProject do
       name: "Validate",
       description: description(),
       package: package(),
-      version: "1.3.0",
+      version: "1.3.1",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -28,7 +28,7 @@ defmodule Validate.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:timex, "~> 3.0"}
     ]
   end
